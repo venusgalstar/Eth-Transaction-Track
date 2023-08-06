@@ -50,7 +50,32 @@ def create_database():
             transactionHash TEXT PRIMARY KEY,
             contractTo TEXT,
             contractValue TEXT
-        )
+        );
+        CREATE TABLE transfer (
+            time INTEGER,
+            fromAddress TEXT,
+            toAddress TEXT,
+            amount TEXT,
+            name TEXT,
+            symbol TEXT,
+            address TEXT,
+            transactionHash TEXT PRIMARY KEY,
+        );
+              
+        CREATE TABLE swap (
+            time INTEGER,
+            fromAddress TEXT,
+            pairAddress TEXT,
+            amountIn TEXT,
+            amountOut TEXT,
+            inTokenName TEXT,
+            inTokenNymbol TEXT,              
+            outTokenName TEXT,
+            outTokenNymbol TEXT,
+            inTokenAddress TEXT,
+            outTokenAddress TEXT,
+            transactionHash TEXT PRIMARY KEY,
+        );
     ''')
 
     conn.commit()
@@ -68,6 +93,37 @@ def insert_data(data):
             :transactionIndex, :value, :type, :contractAddress,
             :cumulativeGasUsed, :effectiveGasPrice, :gasUsed, :status,
             :transactionHash, :contractTo, :contractValue
+        )
+    ''', data)
+
+    conn.commit()
+    conn.close()
+
+# Insert transfer data into sqlite database
+def insert_transfer(data):
+    conn = sqlite3.connect('transactions.db')
+    c = conn.cursor()
+
+    c.execute('''
+        INSERT INTO transfer VALUES (
+            :time, :fromAddress, :toAddress, :amount, :name, :sybmol, :address,
+            :transactionHash,
+        )
+    ''', data)
+
+    conn.commit()
+    conn.close()
+
+# Insert swap data into sqlite database
+def insert_swap(data):
+    conn = sqlite3.connect('transactions.db')
+    c = conn.cursor()
+
+    c.execute('''
+        INSERT INTO swap VALUES (
+            :time, :fromAddress, :pairAddress, :amountIn, :amountOut, 
+            :inTokenName, :inTokenNymbol, :outTokenName, :outTokenNymbol,
+            :inTokenAddress, :outTokenAddress, :transactionHash,
         )
     ''', data)
 
