@@ -14,15 +14,17 @@ dbName = "transactions.db"
 
 # Connect to Ethereum node
 if nodeUrl.startswith("http"):
-    web3 = Web3(Web3.HTTPProvider(nodeUrl)) # "http://publicnode:8545"
+    web3 = Web3(Web3.HTTPProvider(nodeUrl))  # "http://publicnode:8545"
 elif nodeUrl.startswith("ws"):
-    web3 = Web3(Web3.WebsocketProvider(nodeUrl)) # "ws://publicnode:8546"
+    web3 = Web3(Web3.WebsocketProvider(nodeUrl))  # "ws://publicnode:8546"
 else:
-    web3 = Web3(Web3.IPCProvider(nodeUrl)) # "/home/geth/.ethereum/geth.ipc"
+    web3 = Web3(Web3.IPCProvider(nodeUrl))  # "/home/geth/.ethereum/geth.ipc"
 
 web3.middleware_onion.inject(geth_poa_middleware, layer=0)
 
 # Create sqlite database
+
+
 def create_database():
     conn = sqlite3.connect(dbName)
     c = conn.cursor()
@@ -50,7 +52,11 @@ def create_database():
             transactionHash TEXT PRIMARY KEY,
             contractTo TEXT,
             contractValue TEXT
-        );
+        )
+    ''')
+
+
+    c.execute('''
         CREATE TABLE transfer (
             time INTEGER,
             fromAddress TEXT,
@@ -59,9 +65,11 @@ def create_database():
             name TEXT,
             symbol TEXT,
             address TEXT,
-            transactionHash TEXT PRIMARY KEY,
-        );
-              
+            transactionHash TEXT PRIMARY KEY
+        )
+    ''')
+
+    c.execute('''             
         CREATE TABLE swap (
             time INTEGER,
             fromAddress TEXT,
@@ -74,14 +82,16 @@ def create_database():
             outTokenNymbol TEXT,
             inTokenAddress TEXT,
             outTokenAddress TEXT,
-            transactionHash TEXT PRIMARY KEY,
-        );
+            transactionHash TEXT PRIMARY KEY
+        )
     ''')
 
     conn.commit()
     conn.close()
 
 # Insert data into sqlite database
+
+
 def insert_data(data):
     conn = sqlite3.connect('transactions.db')
     c = conn.cursor()
@@ -100,6 +110,8 @@ def insert_data(data):
     conn.close()
 
 # Insert transfer data into sqlite database
+
+
 def insert_transfer(data):
     conn = sqlite3.connect('transactions.db')
     c = conn.cursor()
@@ -115,6 +127,8 @@ def insert_transfer(data):
     conn.close()
 
 # Insert swap data into sqlite database
+
+
 def insert_swap(data):
     conn = sqlite3.connect('transactions.db')
     c = conn.cursor()
@@ -130,11 +144,14 @@ def insert_swap(data):
     conn.commit()
     conn.close()
 
+
 # Create database if it does not exist
 if not os.path.exists(dbName):
     create_database()
 
 # Convert public key to address
+
+
 def publicKeyToAddress(public_key):
     public_key_bytes = bytes.fromhex(public_key)
     hashed_public_key = Web3.keccak(public_key_bytes)
@@ -143,6 +160,8 @@ def publicKeyToAddress(public_key):
     return address
 
 # Adds all transactions from Ethereum block
+
+
 def insertTxsFromBlock(block):
     blockid = block['number']
     time = block['timestamp']
@@ -153,6 +172,8 @@ def insertTxsFromBlock(block):
         # txinfo = trans['input']
         txfrom = trans['from']
         txto = trans['to']
+
+        print(trans)
 
         # inputinfo contains address
         accounts = {
@@ -220,8 +241,10 @@ while True:
         block = web3.eth.getBlock(blockHeight, True)
         if len(block.transactions) > 0:
             insertTxsFromBlock(block)
-            print('Block ' + str(blockHeight) + ' with ' + str(len(block.transactions)) + ' transactions is processed')
+            print('Block ' + str(blockHeight) + ' with ' +
+                  str(len(block.transactions)) + ' transactions is processed')
         else:
-            print('Block ' + str(blockHeight) + ' does not contain transactions')
+            print('Block ' + str(blockHeight) +
+                  ' does not contain transactions')
 
     time.sleep(pollingPeriod)
