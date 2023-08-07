@@ -68,14 +68,17 @@ if not os.path.exists(dbName):
 
 def handle_event(event):
     contract = web3.eth.contract(address = event['address'], abi = TOKEN_ABI)
-    name = contract.functions.name().call()
-    symbol = contract.functions.symbol().call()
+    
+    try:
+        name = contract.functions.name().call()
+        symbol = contract.functions.symbol().call()
+    except:
+        return
 
     try:
         decimal = contract.functions.decimals().call()
     except:
         decimal = 18
-
 
     print(event['transactionHash'].hex())
     if len(event['data']) < len("0x000000000000000000000000"):
@@ -106,8 +109,8 @@ while True:
     conn = sqlite3.connect(dbName)
     c = conn.cursor()
     c.execute("SELECT MAX(blockNumber) FROM transfer")
-    max_block_id = 17386422 #c.fetchone()
-    # max_block_id = max_block_id[0]
+    max_block_id = c.fetchone()
+    max_block_id = max_block_id[0] + 1
     conn.close()
 
     print(max_block_id)

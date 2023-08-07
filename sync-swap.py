@@ -79,23 +79,27 @@ if not os.path.exists(dbName):
 def handle_swap_event(event):
 
     print(event['transactionHash'].hex())
-    pair_contract = web3.eth.contract(address = event['address'], abi = PAIR_ABI)
-    token0 = pair_contract.functions.token0().call()
-    token1 = pair_contract.functions.token1().call()
 
-    token0_contract = web3.eth.contract(address = token0, abi = TOKEN_ABI)
-    token1_contract = web3.eth.contract(address = token1, abi = TOKEN_ABI)
+    try:
+        pair_contract = web3.eth.contract(address = event['address'], abi = PAIR_ABI)
+        token0 = pair_contract.functions.token0().call()
+        token1 = pair_contract.functions.token1().call()
 
-    token0Name = token0_contract.functions.name().call()
-    token0Symbol = token0_contract.functions.symbol().call()
+        token0_contract = web3.eth.contract(address = token0, abi = TOKEN_ABI)
+        token1_contract = web3.eth.contract(address = token1, abi = TOKEN_ABI)
+
+        token0Name = token0_contract.functions.name().call()
+        token0Symbol = token0_contract.functions.symbol().call()
+
+        token1Name = token1_contract.functions.name().call()
+        token1Symbol = token1_contract.functions.symbol().call()
+    except:
+        return
     
     try:
         token0Decimal = token0_contract.functions.decimals().call()
     except:
         token0Decimal = 18
-
-    token1Name = token1_contract.functions.name().call()
-    token1Symbol = token1_contract.functions.symbol().call()
 
     try:
         token1Decimal = token1_contract.functions.decimals().call()
@@ -173,8 +177,8 @@ while True:
     conn = sqlite3.connect(dbName)
     c = conn.cursor()
     c.execute("SELECT MAX(blockNumber) FROM swap")
-    max_block_id = 17386422 #c.fetchone()
-    # max_block_id = max_block_id[0]
+    max_block_id = c.fetchone()
+    max_block_id = max_block_id[0] + 1
     conn.close()
 
     print(max_block_id)
