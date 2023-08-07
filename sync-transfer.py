@@ -67,11 +67,15 @@ if not os.path.exists(dbName):
     create_database()
 
 def handle_event(event):
-    print(event['address'])
     contract = web3.eth.contract(address = event['address'], abi = TOKEN_ABI)
     name = contract.functions.name().call()
     symbol = contract.functions.symbol().call()
-    decimal = contract.functions.decimals().call()
+
+    try:
+        decimal = contract.functions.decimals().call()
+    except:
+        decimal = 18
+
 
     print(event['transactionHash'].hex())
     if len(event['data']) < len("0x000000000000000000000000"):

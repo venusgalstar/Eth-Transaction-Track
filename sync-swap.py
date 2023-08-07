@@ -77,7 +77,8 @@ if not os.path.exists(dbName):
     create_database()
 
 def handle_swap_event(event):
-    print(event)
+
+    print(event['transactionHash'].hex())
     pair_contract = web3.eth.contract(address = event['address'], abi = PAIR_ABI)
     token0 = pair_contract.functions.token0().call()
     token1 = pair_contract.functions.token1().call()
@@ -87,11 +88,19 @@ def handle_swap_event(event):
 
     token0Name = token0_contract.functions.name().call()
     token0Symbol = token0_contract.functions.symbol().call()
-    token0Decimal = token0_contract.functions.decimals().call()
+    
+    try:
+        token0Decimal = token0_contract.functions.decimals().call()
+    except:
+        token0Decimal = 18
 
     token1Name = token1_contract.functions.name().call()
     token1Symbol = token1_contract.functions.symbol().call()
-    token1Decimal = token1_contract.functions.decimals().call()
+
+    try:
+        token1Decimal = token1_contract.functions.decimals().call()
+    except:
+        token1Decimal = 18
 
     amount0In = str(int(event['data'][2:65], 16))
     amount1In = str(int(event['data'][66:129], 16))
