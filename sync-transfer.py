@@ -80,7 +80,7 @@ def handle_event(event):
     except:
         decimal = 18
 
-    print(event['transactionHash'].hex())
+    # print(event['transactionHash'].hex())
     if len(event['data']) < len("0x000000000000000000000000"):
         amount = 0
     else : amount = int(event['data'], 16)
@@ -104,28 +104,20 @@ def log_loop(event_filter):
         handle_event(event)
 
 # Fetch all of new (not in index) Ethereum blocks and add transactions to index
+max_block_id = startBlock
+
 while True:
 
-    conn = sqlite3.connect(dbName)
-    c = conn.cursor()
-    c.execute("SELECT MAX(blockNumber) FROM transfer")
-    max_block_id = c.fetchone()
-    max_block_id = max_block_id[0] 
-    conn.close()
-
-    print(max_block_id)
-
-    if max_block_id is None:
-        max_block_id = startBlock
-    elif max_block_id < startBlock:
-        max_block_id = startBlock
-
     endblock = int(web3.eth.blockNumber) - int(confirmationBlocks)
-    checkingBlock = max_block_id + 1 
+
     transfer_event_topic = web3.keccak(text="Transfer(address,address,uint256)").hex()
+
+    checkingBlock = max_block_id + 100
 
     if checkingBlock > endblock:
         checkingBlock = endblock
+
+    print(max_block_id)
 
     if max_block_id < endblock :
         log_filter = web3.eth.filter({
@@ -134,6 +126,7 @@ while True:
             "topics": [transfer_event_topic]
         })
         log_loop(log_filter)
+        max_block_id = checkingBlock + 1
 
 
-    time.sleep(pollingPeriod)
+    # time.sleep(pollingPeriod)

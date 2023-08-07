@@ -78,7 +78,7 @@ if not os.path.exists(dbName):
 
 def handle_swap_event(event):
 
-    print(event['transactionHash'].hex())
+    # print(event['transactionHash'].hex())
 
     try:
         pair_contract = web3.eth.contract(address = event['address'], abi = PAIR_ABI)
@@ -172,36 +172,26 @@ def swap_loop(event_filter):
         handle_swap_event(event)
 
 # Fetch all of new (not in index) Ethereum blocks and add transactions to index
-while True:
+max_block_id = startBlock
 
-    conn = sqlite3.connect(dbName)
-    c = conn.cursor()
-    c.execute("SELECT MAX(blockNumber) FROM swap")
-    max_block_id = c.fetchone()
-    max_block_id = max_block_id[0] 
-    conn.close()
+while True:
 
     print(max_block_id)
 
-    if max_block_id is None:
-        max_block_id = startBlock
-    elif max_block_id < startBlock:
-        max_block_id = startBlock
-
     endblock = int(web3.eth.blockNumber) - int(confirmationBlocks)
-    checkingBlock = max_block_id + 1 
     swap_event_topic = web3.keccak(text="Swap(address,uint256,uint256,uint256,uint256,address)").hex()
+    checkingBlock = max_block_id + 100
 
     if checkingBlock > endblock:
         checkingBlock = endblock
 
     if max_block_id < endblock :
-
         swap_filter = web3.eth.filter({
             "fromBlock": max_block_id,
             "toBlock": checkingBlock,
             "topics": [swap_event_topic]
         })
         swap_loop(swap_filter)
+        max_block_id = checkingBlock + 1
 
-    time.sleep(pollingPeriod)
+    # time.sleep(pollingPeriod)
