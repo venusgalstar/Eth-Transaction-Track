@@ -4,7 +4,7 @@ address = "0x7361A0E33F717BaF49cd946f5B748E6AA81cC6Fb"
 dbName = "transfer.db"
 
 def get_transfer_from_address(address):
-    conn = sqlite3.connect(dbName)
+    conn = sqlite3.connect("transfer.db")
     c = conn.cursor()
 
     # Use the SELECT statement to get all transactions from the specified address
@@ -19,7 +19,7 @@ def get_transfer_from_address(address):
     return transactions
 
 def get_swap_from_address(address):
-    conn = sqlite3.connect(dbName)
+    conn = sqlite3.connect("swap.db")
     c = conn.cursor()
 
     # Use the SELECT statement to get all transactions from the specified address
