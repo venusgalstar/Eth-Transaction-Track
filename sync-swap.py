@@ -178,7 +178,7 @@ while True:
     c = conn.cursor()
     c.execute("SELECT MAX(blockNumber) FROM swap")
     max_block_id = c.fetchone()
-    max_block_id = max_block_id[0] + 1
+    max_block_id = max_block_id[0] 
     conn.close()
 
     print(max_block_id)
