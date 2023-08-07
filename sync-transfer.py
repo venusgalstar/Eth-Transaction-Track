@@ -9,9 +9,9 @@ TOKEN_ABI = '[{	"inputs": [],	"name": "decimals",	"outputs": [{"internalType": "
 confirmationBlocks = "1"
 nodeUrl = "/media/blockchain/execution/geth/geth.ipc"
 # nodeUrl = "http://localhost:8545"
-pollingPeriod = 5
+pollingPeriod = 1
 startBlock = 17230000
-dbName = "transactions.db"
+dbName = "transfer.db"
 
 # Connect to Ethereum node
 if nodeUrl.startswith("http"):
@@ -39,23 +39,7 @@ def create_database():
             name TEXT,
             symbol TEXT,
             address TEXT,
-            transactionHash TEXT
-        )
-    ''')
-
-    c.execute('''             
-        CREATE TABLE swap (
-            blockNumber INTEGER,
-            fromAddress TEXT,
-            pairAddress TEXT,
-            amountIn TEXT,
-            amountOut TEXT,
-            inTokenName TEXT,
-            inTokenSymbol TEXT,              
-            outTokenName TEXT,
-            outTokenSymbol TEXT,
-            inTokenAddress TEXT,
-            outTokenAddress TEXT,
+            decimal INTEGER,
             transactionHash TEXT
         )
     ''')
@@ -71,31 +55,12 @@ def insert_transfer(data):
     c.execute('''
         INSERT INTO transfer VALUES (
             :blockNumber, :fromAddress, :toAddress, :amount, :name, :symbol, :address,
-            :transactionHash
+            :decimal, :transactionHash
         )
     ''', data)
 
     conn.commit()
     conn.close()
-
-# Insert swap data into sqlite database
-
-
-def insert_swap(data):
-    conn = sqlite3.connect('transactions.db')
-    c = conn.cursor()
-
-    c.execute('''
-        INSERT INTO swap VALUES (
-            :blockNumber, :fromAddress, :pairAddress, :amountIn, :amountOut, 
-            :inTokenName, :inTokenNymbol, :outTokenName, :outTokenNymbol,
-            :inTokenAddress, :outTokenAddress, :transactionHash
-        )
-    ''', data)
-
-    conn.commit()
-    conn.close()
-
 
 # Create database if it does not exist
 if not os.path.exists(dbName):
@@ -106,25 +71,30 @@ def handle_event(event):
     contract = web3.eth.contract(address = event['address'], abi = TOKEN_ABI)
     name = contract.functions.name().call()
     symbol = contract.functions.symbol().call()
+    decimal = contract.functions.decimals().call()
+
+    print(event['transactionHash'].hex())
+    if len(event['data']) < len("0x000000000000000000000000"):
+        amount = 0
+    else : amount = int(event['data'], 16)
 
     data = {
         'blockNumber': event['blockNumber'],
         'fromAddress': event['topics'][1].hex().replace("0x000000000000000000000000","0x"),
         'toAddress': event['topics'][2].hex().replace("0x000000000000000000000000","0x"),
-        'amount': str(int(event['data'],16)),
+        'amount': str(amount),
         'name': name,
         'symbol': symbol,
         'address': event['address'],
+        'decimal': decimal,
         'transactionHash': event['transactionHash'].hex(),
     }
 
     insert_transfer(data)
 
-
 def log_loop(event_filter):
     for event in event_filter.get_all_entries():
         handle_event(event)
-
 
 # Fetch all of new (not in index) Ethereum blocks and add transactions to index
 while True:
@@ -132,9 +102,11 @@ while True:
     conn = sqlite3.connect(dbName)
     c = conn.cursor()
     c.execute("SELECT MAX(blockNumber) FROM transfer")
-    max_block_id = c.fetchone()
-    max_block_id = max_block_id[0]
+    max_block_id = 17386422 #c.fetchone()
+    # max_block_id = max_block_id[0]
     conn.close()
+
+    print(max_block_id)
 
     if max_block_id is None:
         max_block_id = startBlock
@@ -144,7 +116,6 @@ while True:
     endblock = int(web3.eth.blockNumber) - int(confirmationBlocks)
     checkingBlock = max_block_id + 1 
     transfer_event_topic = web3.keccak(text="Transfer(address,address,uint256)").hex()
-    swap_event_topic = web3.keccak(text="Transfer(address,address,uint256)").hex()
 
     if checkingBlock > endblock:
         checkingBlock = endblock
@@ -157,15 +128,5 @@ while True:
         })
         log_loop(log_filter)
 
-
-    # for blockHeight in range(max_block_id, endblock):
-    #     block = web3.eth.getBlock(blockHeight, True)
-    #     if len(block.transactions) > 0:
-    #         insertTxsFromBlock(block)
-    #         print('Block ' + str(blockHeight) + ' with ' +
-    #               str(len(block.transactions)) + ' transactions is processed')
-    #     else:
-    #         print('Block ' + str(blockHeight) +
-    #               ' does not contain transactions')
 
     time.sleep(pollingPeriod)
