@@ -10,7 +10,7 @@ confirmationBlocks = "1"
 nodeUrl = "/media/blockchain/execution/geth/geth.ipc"
 # nodeUrl = "http://localhost:8545"
 pollingPeriod = 1
-startBlock = 17230000
+startBlock = 17231623
 dbName = "transfer.db"
 
 # Connect to Ethereum node
@@ -36,11 +36,17 @@ def create_database():
             fromAddress TEXT,
             toAddress TEXT,
             amount TEXT,
+            address TEXT,
+            transactionHash TEXT
+        )
+    ''')
+
+    c.execute('''
+        CREATE TABLE token (
             name TEXT,
             symbol TEXT,
             address TEXT,
-            decimal INTEGER,
-            transactionHash TEXT
+            decimal INTEGER
         )
     ''')
 
@@ -54,8 +60,7 @@ def insert_transfer(data):
 
     c.execute('''
         INSERT INTO transfer VALUES (
-            :blockNumber, :fromAddress, :toAddress, :amount, :name, :symbol, :address,
-            :decimal, :transactionHash
+            :blockNumber, :fromAddress, :toAddress, :amount, :address, :transactionHash
         )
     ''', data)
 
@@ -66,42 +71,65 @@ def insert_transfer(data):
 if not os.path.exists(dbName):
     create_database()
 
-def handle_event(event):
-    contract = web3.eth.contract(address = event['address'], abi = TOKEN_ABI)
+def handle_event(event, c):
     
-    try:
-        name = contract.functions.name().call()
-        symbol = contract.functions.symbol().call()
-    except:
-        return
-
-    try:
-        decimal = contract.functions.decimals().call()
-    except:
-        decimal = 18
-
-    # print(event['transactionHash'].hex())
     if len(event['data']) < len("0x000000000000000000000000"):
         amount = 0
     else : amount = int(event['data'], 16)
 
-    data = {
-        'blockNumber': event['blockNumber'],
-        'fromAddress': event['topics'][1].hex().replace("0x000000000000000000000000","0x"),
-        'toAddress': event['topics'][2].hex().replace("0x000000000000000000000000","0x"),
-        'amount': str(amount),
-        'name': name,
-        'symbol': symbol,
-        'address': event['address'],
-        'decimal': decimal,
-        'transactionHash': event['transactionHash'].hex(),
-    }
+    try:
+        data = {
+            'blockNumber': event['blockNumber'],
+            'fromAddress': event['topics'][1].hex().replace("0x000000000000000000000000","0x"),
+            'toAddress': event['topics'][2].hex().replace("0x000000000000000000000000","0x"),
+            'amount': str(amount),
+            'address': event['address'],
+            'transactionHash': event['transactionHash'].hex(),
+        }
 
-    insert_transfer(data)
+        c.execute('''
+            INSERT INTO transfer VALUES (
+                :blockNumber, :fromAddress, :toAddress, :amount, :address, :transactionHash
+            )
+        ''', data)
 
+    except:
+        return
+    
+    c.execute("SELECT address FROM token WHERE address = ?", (event['address'],))
+    token = c.fetchone()
+
+    if token is None:
+
+        contract = web3.eth.contract(address = event['address'], abi = TOKEN_ABI)
+        
+        try:
+            name = contract.functions.name().call()
+            symbol = contract.functions.symbol().call()
+        except:
+            return
+
+        try:
+            decimal = contract.functions.decimals().call()
+        except:
+            decimal = 18
+
+        c.execute('''
+            INSERT INTO token VALUES (
+                :name, :symbol, :address, :decimal
+            )
+        ''', {'name':name, 'symbol':symbol, 'address':event['address'], 'decimal':decimal})
+    
+    
 def log_loop(event_filter):
+    conn = sqlite3.connect(dbName)
+    c = conn.cursor()
+
     for event in event_filter.get_all_entries():
-        handle_event(event)
+        handle_event(event, c)
+    
+    conn.commit()
+    conn.close()
 
 # Fetch all of new (not in index) Ethereum blocks and add transactions to index
 max_block_id = startBlock
