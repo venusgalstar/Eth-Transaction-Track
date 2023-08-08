@@ -53,20 +53,6 @@ def create_database():
     conn.commit()
     conn.close()
 
-# Insert transfer data into sqlite database
-def insert_transfer(data):
-    conn = sqlite3.connect(dbName)
-    c = conn.cursor()
-
-    c.execute('''
-        INSERT INTO transfer VALUES (
-            :blockNumber, :fromAddress, :toAddress, :amount, :address, :transactionHash
-        )
-    ''', data)
-
-    conn.commit()
-    conn.close()
-
 # Create database if it does not exist
 if not os.path.exists(dbName):
     create_database()

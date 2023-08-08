@@ -39,72 +39,35 @@ def create_database():
             pairAddress TEXT,
             amountIn TEXT,
             amountOut TEXT,
-            inTokenName TEXT,
-            inTokenSymbol TEXT,              
-            outTokenName TEXT,
-            outTokenSymbol TEXT,
             inTokenAddress TEXT,
             outTokenAddress TEXT,
-            inTokenDecimal INTEGER,
-            outTokenDecimal INTEGER,
             transactionHash TEXT
         )
     ''')
 
-    conn.commit()
-    conn.close()
-
-# Insert swap data into sqlite database
-def insert_swap(data):
-    conn = sqlite3.connect(dbName)
-    c = conn.cursor()
-
     c.execute('''
-        INSERT INTO swap VALUES (
-            :blockNumber, :fromAddress, :pairAddress, :amountIn, :amountOut, 
-            :inTokenName, :inTokenSymbol, :outTokenName, :outTokenSymbol,
-            :inTokenAddress, :outTokenAddress, :inTokenDecimal, :outTokenDecimal,
-            :transactionHash
+        CREATE TABLE token (
+            name TEXT,
+            symbol TEXT,
+            address TEXT,
+            decimal INTEGER
         )
-    ''', data)
+    ''')
+
 
     conn.commit()
     conn.close()
-
 
 # Create database if it does not exist
 if not os.path.exists(dbName):
     create_database()
 
-def handle_swap_event(event):
+def handle_swap_event(event, c):
 
-    # print(event['transactionHash'].hex())
-
-    try:
-        pair_contract = web3.eth.contract(address = event['address'], abi = PAIR_ABI)
-        token0 = pair_contract.functions.token0().call()
-        token1 = pair_contract.functions.token1().call()
-
-        token0_contract = web3.eth.contract(address = token0, abi = TOKEN_ABI)
-        token1_contract = web3.eth.contract(address = token1, abi = TOKEN_ABI)
-
-        token0Name = token0_contract.functions.name().call()
-        token0Symbol = token0_contract.functions.symbol().call()
-
-        token1Name = token1_contract.functions.name().call()
-        token1Symbol = token1_contract.functions.symbol().call()
-    except:
-        return
-    
-    try:
-        token0Decimal = token0_contract.functions.decimals().call()
-    except:
-        token0Decimal = 18
-
-    try:
-        token1Decimal = token1_contract.functions.decimals().call()
-    except:
-        token1Decimal = 18
+    # try:
+    pair_contract = web3.eth.contract(address = event['address'], abi = PAIR_ABI)
+    token0 = pair_contract.functions.token0().call()
+    token1 = pair_contract.functions.token1().call()
 
     amount0In = str(int(event['data'][2:65], 16))
     amount1In = str(int(event['data'][66:129], 16))
@@ -114,39 +77,16 @@ def handle_swap_event(event):
     amountIn = 0
     amountOut = 0
 
-    inTokenName = ''
-    inTokenSymbol = ''
-    outTokenName = ''
-    outTokenSymbol = ''
-
-    inToken = ''
-    outToken = ''
-
-    inTokenDecimal = 0
-    outTokenDecimal = 0
-
     if amount0In == '0' and amount1Out =='0':
         amountIn = amount1In
         amountOut = amount0Out
-        inTokenName = token1Name
-        inTokenSymbol = token1Symbol
-        outTokenName = token0Name
-        outTokenSymbol = token0Symbol
         inToken = token1
         outToken = token0
-        inTokenDecimal = token1Decimal
-        outTokenDecimal = token0Decimal
     else:
         amountIn = amount0In
         amountOut = amount1Out
-        inTokenName = token0Name
-        inTokenSymbol = token0Symbol
-        outTokenName = token1Name
-        outTokenSymbol = token1Symbol
         inToken = token0
         outToken = token1
-        inTokenDecimal = token0Decimal
-        outTokenDecimal = token1Decimal
 
     data = {
         'blockNumber': event['blockNumber'],
@@ -154,22 +94,77 @@ def handle_swap_event(event):
         'pairAddress': event['address'],
         'amountIn': amountIn,
         'amountOut': amountOut,
-        'inTokenName': inTokenName,
-        'inTokenSymbol': inTokenSymbol,
-        'outTokenName': outTokenName,
-        'outTokenSymbol': outTokenSymbol,
         'inTokenAddress': inToken,
         'outTokenAddress': outToken,
-        'inTokenDecimal': inTokenDecimal,
-        'outTokenDecimal': outTokenDecimal,
         'transactionHash': event['transactionHash'].hex(),
     }
 
-    insert_swap(data)
+    c.execute('''
+        INSERT INTO swap VALUES (
+            :blockNumber, :fromAddress, :pairAddress, :amountIn, :amountOut, 
+            :inTokenAddress, :outTokenAddress, :transactionHash
+        )
+    ''', data)
+    # except:
+    #     return
+    
+    c.execute("SELECT address FROM token WHERE address = ?", (token0,))
+    token = c.fetchone()
+
+    if token is None:
+
+        try:
+            token0_contract = web3.eth.contract(address = token0, abi = TOKEN_ABI)
+
+            token0Name = token0_contract.functions.name().call()
+            token0Symbol = token0_contract.functions.symbol().call()
+        except:
+            return
+        
+        try:
+            token0Decimal = token0_contract.functions.decimals().call()
+        except:
+            token0Decimal = 18
+
+        c.execute('''
+            INSERT INTO token VALUES (
+                :name, :symbol, :address, :decimal
+            )
+        ''', {'name':token0Name, 'symbol':token0Symbol, 'address':token0, 'decimal':token0Decimal})
+
+    c.execute("SELECT address FROM token WHERE address = ?", (token1,))
+    token = c.fetchone()
+
+    if token is None:
+
+        try:
+            token1_contract = web3.eth.contract(address = token1, abi = TOKEN_ABI)
+
+            token1Name = token1_contract.functions.name().call()
+            token1Symbol = token1_contract.functions.symbol().call()
+        except:
+            return
+
+        try:
+            token1Decimal = token1_contract.functions.decimals().call()
+        except:
+            token1Decimal = 18
+
+        c.execute('''
+            INSERT INTO token VALUES (
+                :name, :symbol, :address, :decimal
+            )
+        ''', {'name':token1Name, 'symbol':token1Symbol, 'address':token1, 'decimal':token1Decimal})
 
 def swap_loop(event_filter):
+    conn = sqlite3.connect(dbName)
+    c = conn.cursor()
+
     for event in event_filter.get_all_entries():
-        handle_swap_event(event)
+        handle_swap_event(event, c)
+    
+    conn.commit()
+    conn.close()
 
 # Fetch all of new (not in index) Ethereum blocks and add transactions to index
 max_block_id = startBlock
