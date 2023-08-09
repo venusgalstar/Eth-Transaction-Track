@@ -36,7 +36,8 @@ def create_database():
             toAddress TEXT,
             value TEXT,
             gasUsed TEXT,
-            transactionHash TEXT
+            transactionHash TEXT,
+            unique (transactionHash)
         )
     ''')
 
@@ -82,7 +83,7 @@ def insertTxsFromBlock(block, c):
         }
 
         c.execute('''
-            INSERT INTO transactions VALUES (
+            INSERT or IGNORE INTO transactions VALUES (
                 :blockNumber, :fromAddress, :gas, :gasPrice,
                 :toAddress, :value,:gasUsed, :transactionHash
             )
