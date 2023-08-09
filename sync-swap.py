@@ -42,7 +42,8 @@ def create_database():
             inTokenAddress TEXT,
             outTokenAddress TEXT,
             transactionHash TEXT,
-            logIndex INTEGER
+            logIndex INTEGER,
+            unique (transactionHash, logIndex)
         )
     ''')
 
@@ -94,7 +95,7 @@ def handle_swap_event(event, c):
     }
 
     c.execute('''
-        INSERT INTO swap VALUES (
+        INSERT or IGNORE INTO swap VALUES (
             :blockNumber, :fromAddress, :pairAddress, :amountIn, :amountOut, 
             :inTokenAddress, :outTokenAddress, :transactionHash, :logIndex
         )
