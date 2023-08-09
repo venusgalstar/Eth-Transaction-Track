@@ -38,7 +38,8 @@ def create_database():
             amount TEXT,
             address TEXT,
             transactionHash TEXT,
-            logIndex INTEGER
+            logIndex INTEGER,
+            unique (transactionHash, logIndex)
         )
     ''')
 
@@ -89,7 +90,7 @@ def handle_event(event, c):
         }
 
         c.execute('''
-            INSERT INTO transfer VALUES (
+            INSERT or IGNORE INTO transfer VALUES (
                 :blockNumber, :fromAddress, :toAddress, :amount, :address, :transactionHash, :logIndex
             )
         ''', data)
