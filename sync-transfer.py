@@ -10,7 +10,7 @@ confirmationBlocks = "1"
 nodeUrl = "/media/blockchain/execution/geth/geth.ipc"
 # nodeUrl = "http://localhost:8545"
 pollingPeriod = 1
-startBlock = 17252018
+startBlock = 17230000
 dbName = "transfer.db"
 
 # Connect to Ethereum node
@@ -66,16 +66,17 @@ def handle_event(event, c):
         receiver = "0x0000000000000000000000000000000000000000"
 
     accounts = {
-        "0x1daD947dD181fAa6c751ec14e2683e0A8fE2bf8c",
-        "0xc17b1e62eAEf2805F664ed44972FCc7E6647474A",
-        "0xCD76BD589A81E978014F237C5063c80335490Ae0",
-        "0x788425510Bf225b75580804E2441339E17e1a6a5",
+        "0x1daD947dD181fAa6c751ec14e2683e0A8fE2bf8c".lower(),
+        "0xc17b1e62eAEf2805F664ed44972FCc7E6647474A".lower(),
+        "0xCD76BD589A81E978014F237C5063c80335490Ae0".lower(),
+        "0x788425510Bf225b75580804E2441339E17e1a6a5".lower(),
     }
 
     if not(sender in accounts) and not(receiver in accounts):
         return
 
-    print(event['transactionHash'].hex())
+    # print(event['transactionHash'].hex())
+
     try:
         data = {
             'blockNumber': event['blockNumber'],
@@ -84,7 +85,7 @@ def handle_event(event, c):
             'amount': str(amount),
             'address': event['address'],
             'transactionHash': event['transactionHash'].hex(),
-            'logIndex': int(event['logIndex'],10),
+            'logIndex': event['logIndex'],
         }
 
         c.execute('''
@@ -97,7 +98,7 @@ def handle_event(event, c):
         return
     
 def log_loop(event_filter):
-    try:
+    # try:
 
         conn = sqlite3.connect(dbName)
         c = conn.cursor()
@@ -107,8 +108,8 @@ def log_loop(event_filter):
         
         conn.commit()
         conn.close()
-    except:
-        return
+    # except:
+    #     return
 
 # Fetch all of new (not in index) Ethereum blocks and add transactions to index
 max_block_id = startBlock
@@ -119,7 +120,7 @@ while True:
 
     transfer_event_topic = web3.keccak(text="Transfer(address,address,uint256)").hex()
 
-    checkingBlock = max_block_id + 100
+    checkingBlock = max_block_id + 1000
 
     if checkingBlock > endblock:
         checkingBlock = endblock
@@ -127,41 +128,41 @@ while True:
     print(max_block_id)
 
     if max_block_id < endblock :
+        # log_filter = web3.eth.filter({
+        #     "fromBlock": max_block_id,
+        #     "toBlock": checkingBlock,
+        #     "topics": [transfer_event_topic]
+        # })
+        # log_loop(log_filter)
         log_filter = web3.eth.filter({
             "fromBlock": max_block_id,
             "toBlock": checkingBlock,
-            "topics": [transfer_event_topic]
+            "topics": [
+                [transfer_event_topic],
+                [
+                    '0x000000000000000000000000788425510bf225b75580804e2441339e17e1a6a5', 
+                    '0x000000000000000000000000cd76bd589a81e978014f237c5063c80335490ae0', 
+                    '0x000000000000000000000000c17b1e62eaef2805f664ed44972fcc7e6647474a', 
+                    '0x0000000000000000000000001dad947dd181faa6c751ec14e2683e0a8fe2bf8c'
+                ],
+            ]
         })
         log_loop(log_filter)
-        # log_filter = web3.eth.filter({
-        #     "fromBlock": max_block_id,
-        #     "toBlock": checkingBlock,
-        #     "topics": [
-        #         [transfer_event_topic],
-        #         [
-        #             "0x0000000000000000000000001daD947dD181fAa6c751ec14e2683e0A8fE2bf8c",
-        #             "0x000000000000000000000000c17b1e62eAEf2805F664ed44972FCc7E6647474A",
-        #             "0x000000000000000000000000CD76BD589A81E978014F237C5063c80335490Ae0",
-        #             "0x000000000000000000000000788425510Bf225b75580804E2441339E17e1a6a5",
-        #         ],
-        #     ]
-        # })
-        # log_loop(log_filter)
-        # log_filter = web3.eth.filter({
-        #     "fromBlock": max_block_id,
-        #     "toBlock": checkingBlock,
-        #     "topics": [
-        #         [transfer_event_topic],
-        #         [],
-        #         [
-        #             "0x0000000000000000000000001daD947dD181fAa6c751ec14e2683e0A8fE2bf8c",
-        #             "0x000000000000000000000000c17b1e62eAEf2805F664ed44972FCc7E6647474A",
-        #             "0x000000000000000000000000CD76BD589A81E978014F237C5063c80335490Ae0",
-        #             "0x000000000000000000000000788425510Bf225b75580804E2441339E17e1a6a5",
-        #         ],
-        #     ]
-        # })
-        # log_loop(log_filter)
+        log_filter = web3.eth.filter({
+            "fromBlock": max_block_id,
+            "toBlock": checkingBlock,
+            "topics": [
+                [transfer_event_topic],
+                [],
+                [
+                    '0x000000000000000000000000788425510bf225b75580804e2441339e17e1a6a5', 
+                    '0x000000000000000000000000cd76bd589a81e978014f237c5063c80335490ae0', 
+                    '0x000000000000000000000000c17b1e62eaef2805f664ed44972fcc7e6647474a', 
+                    '0x0000000000000000000000001dad947dd181faa6c751ec14e2683e0a8fe2bf8c'
+                ],
+            ]
+        })
+        log_loop(log_filter)
         max_block_id = checkingBlock + 1
 
 
