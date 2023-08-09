@@ -18,12 +18,12 @@ def get_transfer_from_address(address):
 
     return transactions
 
-def get_swap_from_address(address):
+def get_swap_from_address():
     conn = sqlite3.connect("swap.db")
     c = conn.cursor()
 
     # Use the SELECT statement to get all transactions from the specified address
-    c.execute("SELECT * FROM swap WHERE fromAddress = ?", (address,))
+    c.execute("SELECT * FROM swap")
 
     # Fetch all the rows - each row represents a transaction
     transactions = c.fetchall()
@@ -33,6 +33,6 @@ def get_swap_from_address(address):
 
     return transactions
 
-print(get_transfer_from_address(address))
-print(get_swap_from_address(address))
+# print(get_transfer_from_address(address))
+print(get_swap_from_address())
 # 17,270,687

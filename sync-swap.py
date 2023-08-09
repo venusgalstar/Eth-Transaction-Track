@@ -41,19 +41,10 @@ def create_database():
             amountOut TEXT,
             inTokenAddress TEXT,
             outTokenAddress TEXT,
-            transactionHash TEXT
+            transactionHash TEXT,
+            logIndex INTEGER
         )
     ''')
-
-    c.execute('''
-        CREATE TABLE token (
-            name TEXT,
-            symbol TEXT,
-            address TEXT,
-            decimal INTEGER
-        )
-    ''')
-
 
     conn.commit()
     conn.close()
@@ -77,6 +68,8 @@ def handle_swap_event(event, c):
     amountIn = 0
     amountOut = 0
 
+    print(event['transactionHash'].hex())
+
     if amount0In == '0' and amount1Out =='0':
         amountIn = amount1In
         amountOut = amount0Out
@@ -97,64 +90,15 @@ def handle_swap_event(event, c):
         'inTokenAddress': inToken,
         'outTokenAddress': outToken,
         'transactionHash': event['transactionHash'].hex(),
+        'logIndex': event['logIndex']
     }
 
     c.execute('''
         INSERT INTO swap VALUES (
             :blockNumber, :fromAddress, :pairAddress, :amountIn, :amountOut, 
-            :inTokenAddress, :outTokenAddress, :transactionHash
+            :inTokenAddress, :outTokenAddress, :transactionHash, :logIndex
         )
     ''', data)
-    # except:
-    #     return
-    
-    c.execute("SELECT address FROM token WHERE address = ?", (token0,))
-    token = c.fetchone()
-
-    if token is None:
-
-        try:
-            token0_contract = web3.eth.contract(address = token0, abi = TOKEN_ABI)
-
-            token0Name = token0_contract.functions.name().call()
-            token0Symbol = token0_contract.functions.symbol().call()
-        except:
-            return
-        
-        try:
-            token0Decimal = token0_contract.functions.decimals().call()
-        except:
-            token0Decimal = 18
-
-        c.execute('''
-            INSERT INTO token VALUES (
-                :name, :symbol, :address, :decimal
-            )
-        ''', {'name':token0Name, 'symbol':token0Symbol, 'address':token0, 'decimal':token0Decimal})
-
-    c.execute("SELECT address FROM token WHERE address = ?", (token1,))
-    token = c.fetchone()
-
-    if token is None:
-
-        try:
-            token1_contract = web3.eth.contract(address = token1, abi = TOKEN_ABI)
-
-            token1Name = token1_contract.functions.name().call()
-            token1Symbol = token1_contract.functions.symbol().call()
-        except:
-            return
-
-        try:
-            token1Decimal = token1_contract.functions.decimals().call()
-        except:
-            token1Decimal = 18
-
-        c.execute('''
-            INSERT INTO token VALUES (
-                :name, :symbol, :address, :decimal
-            )
-        ''', {'name':token1Name, 'symbol':token1Symbol, 'address':token1, 'decimal':token1Decimal})
 
 def swap_loop(event_filter):
     conn = sqlite3.connect(dbName)
@@ -175,7 +119,7 @@ while True:
 
     endblock = int(web3.eth.blockNumber) - int(confirmationBlocks)
     swap_event_topic = web3.keccak(text="Swap(address,uint256,uint256,uint256,uint256,address)").hex()
-    checkingBlock = max_block_id + 100
+    checkingBlock = max_block_id + 1000
 
     if checkingBlock > endblock:
         checkingBlock = endblock
@@ -184,7 +128,16 @@ while True:
         swap_filter = web3.eth.filter({
             "fromBlock": max_block_id,
             "toBlock": checkingBlock,
-            "topics": [swap_event_topic]
+            "topics": [
+                [swap_event_topic],
+                [],
+                [
+                    '0x000000000000000000000000788425510bf225b75580804e2441339e17e1a6a5', 
+                    '0x000000000000000000000000cd76bd589a81e978014f237c5063c80335490ae0', 
+                    '0x000000000000000000000000c17b1e62eaef2805f664ed44972fcc7e6647474a', 
+                    '0x0000000000000000000000001dad947dd181faa6c751ec14e2683e0a8fe2bf8c'
+                ]
+            ]
         })
         swap_loop(swap_filter)
         max_block_id = checkingBlock + 1
