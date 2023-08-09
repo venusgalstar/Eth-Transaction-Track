@@ -10,7 +10,7 @@ confirmationBlocks = "1"
 nodeUrl = "/media/blockchain/execution/geth/geth.ipc"
 # nodeUrl = "http://localhost:8545"
 pollingPeriod = 1
-startBlock = 17231623
+startBlock = 17252018
 dbName = "transfer.db"
 
 # Connect to Ethereum node
@@ -37,16 +37,8 @@ def create_database():
             toAddress TEXT,
             amount TEXT,
             address TEXT,
-            transactionHash TEXT
-        )
-    ''')
-
-    c.execute('''
-        CREATE TABLE token (
-            name TEXT,
-            symbol TEXT,
-            address TEXT,
-            decimal INTEGER
+            transactionHash TEXT,
+            logIndex INTEGER
         )
     ''')
 
@@ -64,58 +56,59 @@ def handle_event(event, c):
     else : amount = int(event['data'], 16)
 
     try:
+        sender = event['topics'][1].hex().replace("0x000000000000000000000000","0x")
+    except:
+        sender = "0x0000000000000000000000000000000000000000"
+
+    try:
+        receiver = event['topics'][2].hex().replace("0x000000000000000000000000","0x")
+    except:
+        receiver = "0x0000000000000000000000000000000000000000"
+
+    accounts = {
+        "0x1daD947dD181fAa6c751ec14e2683e0A8fE2bf8c",
+        "0xc17b1e62eAEf2805F664ed44972FCc7E6647474A",
+        "0xCD76BD589A81E978014F237C5063c80335490Ae0",
+        "0x788425510Bf225b75580804E2441339E17e1a6a5",
+    }
+
+    if not(sender in accounts) and not(receiver in accounts):
+        return
+
+    print(event['transactionHash'].hex())
+    try:
         data = {
             'blockNumber': event['blockNumber'],
-            'fromAddress': event['topics'][1].hex().replace("0x000000000000000000000000","0x"),
-            'toAddress': event['topics'][2].hex().replace("0x000000000000000000000000","0x"),
+            'fromAddress': sender,
+            'toAddress': receiver,
             'amount': str(amount),
             'address': event['address'],
             'transactionHash': event['transactionHash'].hex(),
+            'logIndex': int(event['logIndex'],10),
         }
 
         c.execute('''
             INSERT INTO transfer VALUES (
-                :blockNumber, :fromAddress, :toAddress, :amount, :address, :transactionHash
+                :blockNumber, :fromAddress, :toAddress, :amount, :address, :transactionHash, :logIndex
             )
         ''', data)
 
     except:
         return
     
-    c.execute("SELECT address FROM token WHERE address = ?", (event['address'],))
-    token = c.fetchone()
-
-    if token is None:
-
-        contract = web3.eth.contract(address = event['address'], abi = TOKEN_ABI)
-        
-        try:
-            name = contract.functions.name().call()
-            symbol = contract.functions.symbol().call()
-        except:
-            return
-
-        try:
-            decimal = contract.functions.decimals().call()
-        except:
-            decimal = 18
-
-        c.execute('''
-            INSERT INTO token VALUES (
-                :name, :symbol, :address, :decimal
-            )
-        ''', {'name':name, 'symbol':symbol, 'address':event['address'], 'decimal':decimal})
-    
-    
 def log_loop(event_filter):
-    conn = sqlite3.connect(dbName)
-    c = conn.cursor()
+    try:
 
-    for event in event_filter.get_all_entries():
-        handle_event(event, c)
-    
-    conn.commit()
-    conn.close()
+        conn = sqlite3.connect(dbName)
+        c = conn.cursor()
+
+        for event in event_filter.get_all_entries():
+            handle_event(event, c)
+        
+        conn.commit()
+        conn.close()
+    except:
+        return
 
 # Fetch all of new (not in index) Ethereum blocks and add transactions to index
 max_block_id = startBlock
@@ -140,6 +133,35 @@ while True:
             "topics": [transfer_event_topic]
         })
         log_loop(log_filter)
+        # log_filter = web3.eth.filter({
+        #     "fromBlock": max_block_id,
+        #     "toBlock": checkingBlock,
+        #     "topics": [
+        #         [transfer_event_topic],
+        #         [
+        #             "0x0000000000000000000000001daD947dD181fAa6c751ec14e2683e0A8fE2bf8c",
+        #             "0x000000000000000000000000c17b1e62eAEf2805F664ed44972FCc7E6647474A",
+        #             "0x000000000000000000000000CD76BD589A81E978014F237C5063c80335490Ae0",
+        #             "0x000000000000000000000000788425510Bf225b75580804E2441339E17e1a6a5",
+        #         ],
+        #     ]
+        # })
+        # log_loop(log_filter)
+        # log_filter = web3.eth.filter({
+        #     "fromBlock": max_block_id,
+        #     "toBlock": checkingBlock,
+        #     "topics": [
+        #         [transfer_event_topic],
+        #         [],
+        #         [
+        #             "0x0000000000000000000000001daD947dD181fAa6c751ec14e2683e0A8fE2bf8c",
+        #             "0x000000000000000000000000c17b1e62eAEf2805F664ed44972FCc7E6647474A",
+        #             "0x000000000000000000000000CD76BD589A81E978014F237C5063c80335490Ae0",
+        #             "0x000000000000000000000000788425510Bf225b75580804E2441339E17e1a6a5",
+        #         ],
+        #     ]
+        # })
+        # log_loop(log_filter)
         max_block_id = checkingBlock + 1
 
 
