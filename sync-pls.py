@@ -64,9 +64,6 @@ def insertTxsFromBlock(block, c):
         txfrom = trans['from']
         txto = trans['to']
 
-        # print(txfrom)
-        # print(txto)
-
         if not(txfrom in accounts) and not(txto in accounts):
             continue
 
@@ -102,7 +99,8 @@ while True:
 
     endblock = int(web3.eth.blockNumber) - int(confirmationBlocks)
 
-    for blockHeight in range(max_block_id, endblock):
+    for blockHeight in range(max_block_id, endblock):        
+            
         
         block = web3.eth.getBlock(blockHeight, True)
         if len(block.transactions) > 0:
@@ -110,6 +108,7 @@ while True:
 
         if (blockHeight - max_block_id) % 1000 == 0 :
             print(blockHeight)
+            conn.commit()
     
     max_block_id = endblock
     
