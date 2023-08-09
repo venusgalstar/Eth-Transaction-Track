@@ -141,5 +141,5 @@ while True:
         })
         swap_loop(swap_filter)
         max_block_id = checkingBlock + 1
-
-    # time.sleep(pollingPeriod)
+    else:
+        time.sleep(pollingPeriod)

@@ -36,24 +36,9 @@ def create_database():
             toAddress TEXT,
             value TEXT,
             gasUsed TEXT,
-            transactionHash TEXT,
+            transactionHash TEXT
         )
     ''')
-
-    conn.commit()
-    conn.close()
-
-# Insert data into sqlite database
-def insert_data(data):
-    conn = sqlite3.connect('transactions.db')
-    c = conn.cursor()
-
-    c.execute('''
-        INSERT INTO transactions VALUES (
-            :blockNumber, :fromAddress, :gas, :gasPrice,
-            :toAddress, :value,:gasUsed, :transactionHash
-        )
-    ''', data)
 
     conn.commit()
     conn.close()
@@ -62,32 +47,25 @@ def insert_data(data):
 if not os.path.exists(dbName):
     create_database()
 
-# Convert public key to address
-def publicKeyToAddress(public_key):
-    public_key_bytes = bytes.fromhex(public_key)
-    hashed_public_key = Web3.keccak(public_key_bytes)
-    address_bytes = hashed_public_key[-20:]
-    address = address_bytes.hex()
-    return address
-
 # Adds all transactions from Ethereum block
-def insertTxsFromBlock(block):
+def insertTxsFromBlock(block, c):
+
     blockid = block['number']
+    # inputinfo contains address
+    accounts = {
+        "0x1daD947dD181fAa6c751ec14e2683e0A8fE2bf8c",
+        "0xc17b1e62eAEf2805F664ed44972FCc7E6647474A",
+        "0xCD76BD589A81E978014F237C5063c80335490Ae0",
+        "0x788425510Bf225b75580804E2441339E17e1a6a5",
+    }
+    
     for txNumber in range(0, len(block.transactions)):
         trans = block.transactions[txNumber]
-
-        # filter transactions
-        # txinfo = trans['input']
         txfrom = trans['from']
         txto = trans['to']
 
-        # inputinfo contains address
-        accounts = {
-            '0x788425510bf225b75580804e2441339e17e1a6a5', 
-            '0xcd76bd589a81e978014f237c5063c80335490ae0', 
-            '0xc17b1e62eaef2805f664ed44972fcc7e6647474a', 
-            '0x1dad947dd181faa6c751ec14e2683e0a8fe2bf8c'
-        }
+        # print(txfrom)
+        # print(txto)
 
         if not(txfrom in accounts) and not(txto in accounts):
             continue
@@ -106,7 +84,12 @@ def insertTxsFromBlock(block):
             'transactionHash': transReceipt['transactionHash'].hex(),
         }
 
-        insert_data(data)
+        c.execute('''
+            INSERT INTO transactions VALUES (
+                :blockNumber, :fromAddress, :gas, :gasPrice,
+                :toAddress, :value,:gasUsed, :transactionHash
+            )
+        ''', data)
 
 
 # Fetch all of new (not in index) Ethereum blocks and add transactions to index
@@ -114,14 +97,23 @@ max_block_id = startBlock
 
 while True:
 
+    conn = sqlite3.connect(dbName)
+    c = conn.cursor()
+
     endblock = int(web3.eth.blockNumber) - int(confirmationBlocks)
 
     for blockHeight in range(max_block_id, endblock):
+        
         block = web3.eth.getBlock(blockHeight, True)
         if len(block.transactions) > 0:
-            insertTxsFromBlock(block)
-            print('Block ' + str(blockHeight) + ' with ' + str(len(block.transactions)) + ' transactions is processed')
-        else:
-            print('Block ' + str(blockHeight) + ' does not contain transactions')
+            insertTxsFromBlock(block, c)
+
+        if (blockHeight - max_block_id) % 1000 == 0 :
+            print(blockHeight)
+    
+    max_block_id = endblock
+    
+    conn.commit()
+    conn.close()
 
     time.sleep(pollingPeriod)

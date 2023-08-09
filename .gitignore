@@ -2,3 +2,4 @@
 .vscode
 transfer.db
 swap.db
+transactions.db
