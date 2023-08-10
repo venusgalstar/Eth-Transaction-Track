@@ -1,18 +1,15 @@
 from web3 import Web3
 from web3.middleware import geth_poa_middleware
+from env import PAIR_ABI
+from env import startBlock
+from env import confirmationBlocks
+from env import nodeUrl
+from env import pollingPeriod
+from env import topics
 import time
 import sqlite3
 import os
 
-TOKEN_ABI = '[{	"inputs": [],	"name": "decimals",	"outputs": [{"internalType": "uint8","name": "","type": "uint8"}	],	"stateMutability": "view",	"type": "function"},{	"inputs": [],	"name": "name",	"outputs": [{"internalType": "string","name": "","type": "string"}	],	"stateMutability": "view",	"type": "function"},{	"inputs": [],	"name": "symbol",	"outputs": [{"internalType": "string","name": "","type": "string"}	],	"stateMutability": "view",	"type": "function"},{	"inputs": [],	"name": "totalSupply",	"outputs": [{"internalType": "uint256","name": "","type": "uint256"}	],	"stateMutability": "view",	"type": "function"}]'
-PAIR_ABI ='[{"type": "function","stateMutability": "view","outputs": [{"type": "uint8","name": "","internalType": "uint8"}],"name": "decimals","inputs": [],"constant": true},{"type": "function","stateMutability": "view","outputs": [{"type": "address","name": "","internalType": "address"}],"name": "factory","inputs": [],"constant": true},{"type": "function","stateMutability": "view","outputs": [{"type": "uint112","name": "_reserve0","internalType": "uint112"},{"type": "uint112","name": "_reserve1","internalType": "uint112"},{"type": "uint32","name": "_blockTimestampLast","internalType": "uint32"}],"name": "getReserves","inputs": [],"constant": true},{"type": "function","stateMutability": "view","outputs": [{"type": "string","name": "","internalType": "string"}],"name": "name","inputs": [],"constant": true},{"type": "function","stateMutability": "view","outputs": [{"type": "string","name": "","internalType": "string"}],"name": "symbol","inputs": [],"constant": true},{"type": "function","stateMutability": "view","outputs": [{"type": "address","name": "","internalType": "address"}],"name": "token0","inputs": [],"constant": true},{"type": "function","stateMutability": "view","outputs": [{"type": "address","name": "","internalType": "address"}],"name": "token1","inputs": [],"constant": true}]'
-
-# Set global environment variables
-confirmationBlocks = "1"
-nodeUrl = "/media/blockchain/execution/geth/geth.ipc"
-# nodeUrl = "http://localhost:8545"
-pollingPeriod = 1
-startBlock = 17230000
 dbName = "swap.db"
 
 # Connect to Ethereum node
@@ -132,12 +129,7 @@ while True:
             "topics": [
                 [swap_event_topic],
                 [],
-                [
-                    '0x000000000000000000000000788425510bf225b75580804e2441339e17e1a6a5', 
-                    '0x000000000000000000000000cd76bd589a81e978014f237c5063c80335490ae0', 
-                    '0x000000000000000000000000c17b1e62eaef2805f664ed44972fcc7e6647474a', 
-                    '0x0000000000000000000000001dad947dd181faa6c751ec14e2683e0a8fe2bf8c'
-                ]
+                topics
             ]
         })
         swap_loop(swap_filter)

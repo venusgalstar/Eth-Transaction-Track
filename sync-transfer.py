@@ -3,14 +3,12 @@ from web3.middleware import geth_poa_middleware
 import time
 import sqlite3
 import os
+from env import startBlock
+from env import confirmationBlocks
+from env import nodeUrl
+from env import pollingPeriod
+from env import topics
 
-TOKEN_ABI = '[{	"inputs": [],	"name": "decimals",	"outputs": [{"internalType": "uint8","name": "","type": "uint8"}	],	"stateMutability": "view",	"type": "function"},{	"inputs": [],	"name": "name",	"outputs": [{"internalType": "string","name": "","type": "string"}	],	"stateMutability": "view",	"type": "function"},{	"inputs": [],	"name": "symbol",	"outputs": [{"internalType": "string","name": "","type": "string"}	],	"stateMutability": "view",	"type": "function"},{	"inputs": [],	"name": "totalSupply",	"outputs": [{"internalType": "uint256","name": "","type": "uint256"}	],	"stateMutability": "view",	"type": "function"}]'
-# Set global environment variables
-confirmationBlocks = "1"
-nodeUrl = "/media/blockchain/execution/geth/geth.ipc"
-# nodeUrl = "http://localhost:8545"
-pollingPeriod = 1
-startBlock = 17230000
 dbName = "transfer.db"
 
 # Connect to Ethereum node
@@ -56,24 +54,10 @@ def handle_event(event, c):
         amount = 0
     else : amount = int(event['data'], 16)
 
-    try:
-        sender = event['topics'][1].hex().replace("0x000000000000000000000000","0x")
-    except:
-        sender = "0x0000000000000000000000000000000000000000"
+    sender = event['topics'][1].hex().replace("0x000000000000000000000000","0x")
+    receiver = event['topics'][2].hex().replace("0x000000000000000000000000","0x")
 
-    try:
-        receiver = event['topics'][2].hex().replace("0x000000000000000000000000","0x")
-    except:
-        receiver = "0x0000000000000000000000000000000000000000"
-
-    accounts = {
-        "0x1daD947dD181fAa6c751ec14e2683e0A8fE2bf8c".lower(),
-        "0xc17b1e62eAEf2805F664ed44972FCc7E6647474A".lower(),
-        "0xCD76BD589A81E978014F237C5063c80335490Ae0".lower(),
-        "0x788425510Bf225b75580804E2441339E17e1a6a5".lower(),
-    }
-
-    if not(sender in accounts) and not(receiver in accounts):
+    if not(event['topics'][1].hex() in topics) and not(event['topics'][2].hex() in topics):
         return
 
     # print(event['transactionHash'].hex())
@@ -129,23 +113,12 @@ while True:
     print(max_block_id)
 
     if max_block_id < endblock :
-        # log_filter = web3.eth.filter({
-        #     "fromBlock": max_block_id,
-        #     "toBlock": checkingBlock,
-        #     "topics": [transfer_event_topic]
-        # })
-        # log_loop(log_filter)
         log_filter = web3.eth.filter({
             "fromBlock": max_block_id,
             "toBlock": checkingBlock,
             "topics": [
                 [transfer_event_topic],
-                [
-                    '0x000000000000000000000000788425510bf225b75580804e2441339e17e1a6a5', 
-                    '0x000000000000000000000000cd76bd589a81e978014f237c5063c80335490ae0', 
-                    '0x000000000000000000000000c17b1e62eaef2805f664ed44972fcc7e6647474a', 
-                    '0x0000000000000000000000001dad947dd181faa6c751ec14e2683e0a8fe2bf8c'
-                ],
+                topics
             ]
         })
         log_loop(log_filter)
@@ -155,12 +128,7 @@ while True:
             "topics": [
                 [transfer_event_topic],
                 [],
-                [
-                    '0x000000000000000000000000788425510bf225b75580804e2441339e17e1a6a5', 
-                    '0x000000000000000000000000cd76bd589a81e978014f237c5063c80335490ae0', 
-                    '0x000000000000000000000000c17b1e62eaef2805f664ed44972fcc7e6647474a', 
-                    '0x0000000000000000000000001dad947dd181faa6c751ec14e2683e0a8fe2bf8c'
-                ],
+                topics
             ]
         })
         log_loop(log_filter)

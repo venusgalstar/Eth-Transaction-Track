@@ -1,15 +1,15 @@
 from web3 import Web3
 from web3.middleware import geth_poa_middleware
+from env import accounts
+from env import startBlock
+from env import confirmationBlocks
+from env import nodeUrl
+from env import pollingPeriod
+
 import time
 import sqlite3
 import os
 
-# Set global environment variables
-confirmationBlocks = "1"
-nodeUrl = "/media/blockchain/execution/geth/geth.ipc"
-# nodeUrl = "http://localhost:8545"
-pollingPeriod = 5
-startBlock = 17230000
 dbName = "transactions.db"
 
 # Connect to Ethereum node
@@ -52,13 +52,6 @@ if not os.path.exists(dbName):
 def insertTxsFromBlock(block, c):
 
     blockid = block['number']
-    # inputinfo contains address
-    accounts = {
-        "0x1daD947dD181fAa6c751ec14e2683e0A8fE2bf8c",
-        "0xc17b1e62eAEf2805F664ed44972FCc7E6647474A",
-        "0xCD76BD589A81E978014F237C5063c80335490Ae0",
-        "0x788425510Bf225b75580804E2441339E17e1a6a5",
-    }
     
     for txNumber in range(0, len(block.transactions)):
         trans = block.transactions[txNumber]

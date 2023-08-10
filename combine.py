@@ -2,13 +2,8 @@ from web3 import Web3
 from web3.middleware import geth_poa_middleware
 import sqlite3
 import os
-
-# Set global environment variables
-confirmationBlocks = "1"
-nodeUrl = "/media/blockchain/execution/geth/geth.ipc"
-# nodeUrl = "http://localhost:8545"
-pollingPeriod = 1
-TOKEN_ABI = '[{	"inputs": [],	"name": "decimals",	"outputs": [{"internalType": "uint8","name": "","type": "uint8"}	],	"stateMutability": "view",	"type": "function"},{	"inputs": [],	"name": "name",	"outputs": [{"internalType": "string","name": "","type": "string"}	],	"stateMutability": "view",	"type": "function"},{	"inputs": [],	"name": "symbol",	"outputs": [{"internalType": "string","name": "","type": "string"}	],	"stateMutability": "view",	"type": "function"},{	"inputs": [],	"name": "totalSupply",	"outputs": [{"internalType": "uint256","name": "","type": "uint256"}	],	"stateMutability": "view",	"type": "function"}]'
+from env import TOKEN_ABI
+from env import nodeUrl
 
 combineDBName = "account.db"
 
