@@ -5,38 +5,43 @@ Indexer is written in Python. It works as a service in background:
 
 - Connects to Ethereum node (works well with Geth, Nethermind or other node, which provides http/ws/ipc API)
 - Stores all erc20 transfer and swap info in SQLite database
-- Provides data for API to get transactions by address with postgrest
+- Provides data for API to get transactions by address
 
 ## Stored information
 
-Transfer table fields:
+Transfer table fields for erc20:
 
 - 'blockNumber' block number on pulse chain ,
 - 'fromAddress' EOA which occured erc20 transfer,
 - 'toAddress' Receiver address,
 - 'amount' Transfer Amount Value,
-- 'name' Name of Token  which is transfered,
-- 'symbol' Symbol of Token,
 - 'address' Address of Token,
-- 'decimal' Decimal value of Token,
 - 'transactionHash' Hash of transaction which occured transfer
+- 'logIndex' Index number of this transfer in transaction
 
-Swap table fields:
+Swap table fields for erc20:
 
 - 'blockNumber' block number on pulse chain ,
 - 'fromAddress' EOA which occured erc20 transfer,
 - 'pairAddress' Swapping Pair Contract Address,
 - 'amountIn' input token amount,
 - 'amountOut' output token amount,
-- 'inTokenName' Name of InputToken ,
-- 'inTokenSymbol' Symbol of InputToken,
-- 'outTokenName' Name of OutputToken ,
-- 'outTokenSymbol' Symbol of OutputToken,
 - 'inTokenAddress' Address of InputToken,
 - 'outTokenAddress' Address of OutputToken,
-- 'inTokenDecimal' Decimal value of InputToken,
-- 'outTokenDecimal' Decimal value of OutputToken,
 - 'transactionHash' Hash of transaction which occured transfer
+- 'logIndex' Index number of this transfer in transaction
+
+Transactions table files for PLS, Native currency:
+
+- 'blockNumber' block number on pulse chain ,
+- 'fromAddress' EOA which occured erc20 transfer,
+- 'pairAddress' Swapping Pair Contract Address,
+- 'amountIn' input token amount,
+- 'amountOut' output token amount,
+- 'inTokenAddress' Address of InputToken,
+- 'outTokenAddress' Address of OutputToken,
+- 'transactionHash' Hash of transaction which occured transfer
+- 'logIndex' Index number of this transfer in transaction
 
 To improve syncing past transfer events, Indexer don't check every transaction but transfer event by dumping 100 blocks.
 
