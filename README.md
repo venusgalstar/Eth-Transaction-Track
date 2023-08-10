@@ -35,13 +35,19 @@ Transactions table files for PLS, Native currency:
 
 - 'blockNumber' block number on pulse chain ,
 - 'fromAddress' EOA which occured erc20 transfer,
-- 'pairAddress' Swapping Pair Contract Address,
-- 'amountIn' input token amount,
-- 'amountOut' output token amount,
-- 'inTokenAddress' Address of InputToken,
-- 'outTokenAddress' Address of OutputToken,
+- 'gas' Give Gas from the user for transaction,
+- 'gasPrice' Give Gasprice from the user for transaction,
+- 'toAddress' Destination address of transfer,
+- 'value' Transfer amount of PLS,
+- 'gasUsed' Used gas for this transaction,
 - 'transactionHash' Hash of transaction which occured transfer
-- 'logIndex' Index number of this transfer in transaction
+
+Toekn table for token info:
+
+- 'address' Token address ,
+- 'name' Token name,
+- 'symbol' Token symbol,
+- 'decimal' Token decimal,
 
 To improve syncing past transfer events, Indexer don't check every transaction but transfer event by dumping 100 blocks.
 
@@ -79,16 +85,23 @@ pip3 install psycopg2
 
 `sync-transfer.py` is a script which makes erc20 transfer transaction logging
 `sync-swap.py` is a script which makes erc20 swap transaction logging
+`sync-pls.py` is a script which makes PLS transfer transaction logging
 
 - DB_NAME: SQL database name. Example: `transfer.db`.
-- ETH_URL: Ethereum node url to reach the node. Supports websocket, http and ipc. See examples in `ethsync.py`.
+- ETH_URL: Ethereum node url to reach the node. Supports websocket, http and ipc. See examples in `sync-pls.py`.
 - START_BLOCK: the first block to synchronize from. Default is 1.
 - CONFIRMATIONS_BLOCK: the number of blocks to leave out of the synch from the end. I.e., last block is current `blockNumber - CONFIRMATIONS_BLOCK`. Default is 0.
-- PERIOD: Number of seconds between to synchronization. Default is 20 sec.
 
 Indexer can fetch transactions not from the beginning, but from special block number `START_BLOCK`. It will speed up indexing process and reduce database size.
 
 At first start, Indexer will store transactions starting from the block you set. It will take a time. After that, it will check for new blocks every `PERIOD` seconds and update the index.
+
+- sudo python3 sync-transfer.py
+- sudo python3 sync-swap.py
+- sudo python3 sync-pls.py
+- sudo python3 combine.py
+
+Finally, you will get account.db which contains all info from this script.
 
 ### Troubleshooting
 
