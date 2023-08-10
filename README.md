@@ -1,5 +1,6 @@
 # Indexer for Pulsechain especially erc20 transfer and swap on dex
 
+# Contact me on t.me/@Capdev22, flexible chat for project.
 
 Indexer is written in Python. It works as a service in background:
 
@@ -96,10 +97,10 @@ Indexer can fetch transactions not from the beginning, but from special block nu
 
 At first start, Indexer will store transactions starting from the block you set. It will take a time. After that, it will check for new blocks every `PERIOD` seconds and update the index.
 
-- sudo python3 sync-transfer.py
-- sudo python3 sync-swap.py
-- sudo python3 sync-pls.py
-- sudo python3 combine.py
+All config infos are in env.py
+You can change startBlockNumber and accounts.
+
+- ./run.sh
 
 Finally, you will get account.db which contains all info from this script.
 
