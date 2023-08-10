@@ -79,6 +79,21 @@ def create_databse():
         )
     ''')
 
+    # Copy swap
+    combineQ.execute('''
+        CREATE TABLE transactions (
+            blockNumber INTEGER,
+            fromAddress TEXT,
+            gas TEXT,
+            gasPrice TEXT,
+            toAddress TEXT,
+            value TEXT,
+            gasUsed TEXT,
+            transactionHash TEXT,
+            unique (transactionHash)
+        )
+    ''')
+
     connectionCombine.commit()
     connectionCombine.close()
 
@@ -109,6 +124,17 @@ def combine_database():
     ''')
 
     connectionCombine.commit()   
+
+    # Copy transaction
+    combineQ.execute('''
+        ATTACH DATABASE "transactions.db" AS transactions
+    ''')
+
+    combineQ.execute('''
+        INSERT or IGNORE INTO transactions SELECT * FROM transactions.transactions
+    ''')
+
+    connectionCombine.commit() 
 
     connectionCombine.close()
 
