@@ -166,9 +166,12 @@ def sync_token():
     connectionCombine.commit()   
     connectionCombine.close()
 
+print("Started combining")
 if not os.path.exists(combineDBName):
     create_databse()
 
 combine_database()
 
 sync_token()
+
+print("Ended combining")

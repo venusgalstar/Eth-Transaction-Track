@@ -66,8 +66,6 @@ def handle_swap_event(event, c):
     amountIn = 0
     amountOut = 0
 
-    print(event['transactionHash'].hex())
-
     if amount0In == '0' and amount1Out =='0':
         amountIn = amount1In
         amountOut = amount0Out
@@ -111,9 +109,10 @@ def swap_loop(event_filter):
 # Fetch all of new (not in index) Ethereum blocks and add transactions to index
 max_block_id = startBlock
 
+print("Starting swap syncing")
 while True:
 
-    print(max_block_id)
+    # print(max_block_id)
 
     endblock = int(web3.eth.blockNumber) - int(confirmationBlocks)
     swap_event_topic = web3.keccak(text="Swap(address,uint256,uint256,uint256,uint256,address)").hex()
@@ -135,4 +134,5 @@ while True:
         swap_loop(swap_filter)
         max_block_id = checkingBlock + 1
     else:
-        time.sleep(pollingPeriod)
+        print("Ended swap syncing")
+        break

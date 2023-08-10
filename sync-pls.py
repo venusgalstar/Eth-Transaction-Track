@@ -86,27 +86,28 @@ def insertTxsFromBlock(block, c):
 # Fetch all of new (not in index) Ethereum blocks and add transactions to index
 max_block_id = startBlock
 
-while True:
+# while True:
+print("Starting pls syncing")
 
-    conn = sqlite3.connect(dbName)
-    c = conn.cursor()
+conn = sqlite3.connect(dbName)
+c = conn.cursor()
 
-    endblock = int(web3.eth.blockNumber) - int(confirmationBlocks)
+endblock = int(web3.eth.blockNumber) - int(confirmationBlocks)
 
-    for blockHeight in range(max_block_id, endblock):        
-            
+for blockHeight in range(max_block_id, endblock):        
         
-        block = web3.eth.getBlock(blockHeight, True)
-        if len(block.transactions) > 0:
-            insertTxsFromBlock(block, c)
-
-        if (blockHeight - max_block_id) % 1000 == 0 :
-            print(blockHeight)
-            conn.commit()
     
-    max_block_id = endblock
-    
-    conn.commit()
-    conn.close()
+    block = web3.eth.getBlock(blockHeight, True)
+    if len(block.transactions) > 0:
+        insertTxsFromBlock(block, c)
 
-    time.sleep(pollingPeriod)
+    if (blockHeight - max_block_id) % 1000 == 0 :
+        print(blockHeight)
+        conn.commit()
+
+max_block_id = endblock
+
+conn.commit()
+conn.close()
+print("Ended pls syncing")
+    # time.sleep(pollingPeriod)

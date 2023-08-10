@@ -99,6 +99,8 @@ def log_loop(event_filter):
 # Fetch all of new (not in index) Ethereum blocks and add transactions to index
 max_block_id = startBlock
 
+print("Starting transfer syncing")
+
 while True:
 
     endblock = int(web3.eth.blockNumber) - int(confirmationBlocks)
@@ -110,7 +112,7 @@ while True:
     if checkingBlock > endblock:
         checkingBlock = endblock
 
-    print(max_block_id)
+    # print(max_block_id)
 
     if max_block_id < endblock :
         log_filter = web3.eth.filter({
@@ -134,4 +136,5 @@ while True:
         log_loop(log_filter)
         max_block_id = checkingBlock + 1
     else:
-        time.sleep(pollingPeriod)
+        print("Ended transfer syncing")
+        break
