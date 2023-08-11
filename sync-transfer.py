@@ -111,6 +111,8 @@ while True:
 
     if checkingBlock > endblock:
         checkingBlock = endblock
+    
+    # TODO: Do some logging using tqdm for live block updates maybe?
 
     # print(max_block_id)
 
@@ -134,6 +136,10 @@ while True:
             ]
         })
         log_loop(log_filter)
+
+        # TODO: max_block_id cannot just be incremented you need to get the maximum processed block from the filter
+        # since there may be more relevant events
+        
         max_block_id = checkingBlock + 1
     else:
         print("Ended transfer syncing")

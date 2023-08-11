@@ -112,6 +112,8 @@ max_block_id = startBlock
 print("Starting swap syncing")
 while True:
 
+    # TODO: Again logging using tqdm or something similar; proper instead of debugging print for yourself
+
     # print(max_block_id)
 
     endblock = int(web3.eth.blockNumber) - int(confirmationBlocks)

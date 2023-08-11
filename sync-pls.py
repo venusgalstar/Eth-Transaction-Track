@@ -12,6 +12,9 @@ import os
 
 dbName = "transactions.db"
 
+# TODO: Move this into a separate utility script as mentioned in clean-up
+# web3 access is reoccuring in multiple places
+
 # Connect to Ethereum node
 if nodeUrl.startswith("http"):
     web3 = Web3(Web3.HTTPProvider(nodeUrl)) # "http://publicnode:8545"
