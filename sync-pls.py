@@ -1,8 +1,9 @@
+
 from env import web3
 from env import accounts
 from env import startBlock
 from env import confirmationBlocks
-
+from tqdm import tqdm
 import time
 import sqlite3
 import os
@@ -42,8 +43,16 @@ def insertTxsFromBlock(block, c):
     
     for txNumber in range(0, len(block.transactions)):
         trans = block.transactions[txNumber]
-        txfrom = trans['from'].lower()
-        txto = trans['to'].lower()
+
+        try:
+            txfrom = trans['from'].lower()
+        except:
+            txfrom = trans['from']
+
+        try:
+            txto = trans['to'].lower()
+        except:
+            txto = trans['to']
 
         if not(txfrom in accounts) and not(txto in accounts):
             continue
@@ -72,14 +81,13 @@ def insertTxsFromBlock(block, c):
 
 # Fetch all of new (not in index) Ethereum blocks and add transactions to index
 max_block_id = startBlock
-
-# while True:
-print("Starting pls syncing")
+endblock = int(web3.eth.blockNumber) - int(confirmationBlocks)
 
 conn = sqlite3.connect(dbName)
 c = conn.cursor()
 
-endblock = int(web3.eth.blockNumber) - int(confirmationBlocks)
+print("Starting pls transfer syncing " + str(endblock - max_block_id) + " blocks, final block number is " + str(endblock))
+pbar = tqdm(total = endblock - max_block_id)
 
 for blockHeight in range(max_block_id, endblock):            
     block = web3.eth.getBlock(blockHeight, True)
@@ -87,12 +95,9 @@ for blockHeight in range(max_block_id, endblock):
         insertTxsFromBlock(block, c)
 
     if (blockHeight - max_block_id) % 1000 == 0 :
-        print(blockHeight)
         conn.commit()
-
-max_block_id = endblock
+    pbar.update(1)
 
 conn.commit()
 conn.close()
-print("Ended pls syncing")
-    # time.sleep(pollingPeriod)
+pbar.close()

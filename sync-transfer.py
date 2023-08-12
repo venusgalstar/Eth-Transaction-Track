@@ -5,6 +5,7 @@ import os
 from env import startBlock
 from env import confirmationBlocks
 from env import topics
+from tqdm import tqdm
 
 dbName = "transfer.db"
 
@@ -83,49 +84,47 @@ def log_loop(event_filter):
 
 # Fetch all of new (not in index) Ethereum blocks and add transactions to index
 max_block_id = startBlock
+endblock = int(web3.eth.blockNumber) - int(confirmationBlocks)
+transfer_event_topic = web3.keccak(text="Transfer(address,address,uint256)").hex()
 
-print("Starting transfer syncing")
+print("Starting transfer syncing " + str(endblock - max_block_id) + " blocks, final block number is " + str(endblock))
 
-while True:
+pbar = tqdm(total = endblock - max_block_id)
 
-    endblock = int(web3.eth.blockNumber) - int(confirmationBlocks)
-
-    transfer_event_topic = web3.keccak(text="Transfer(address,address,uint256)").hex()
+while max_block_id < endblock :
 
     checkingBlock = max_block_id + 1000
 
     if checkingBlock > endblock:
         checkingBlock = endblock
     
-    # TODO: Do some logging using tqdm for live block updates maybe?
-
     # print(max_block_id)
 
-    if max_block_id < endblock :
-        log_filter = web3.eth.filter({
-            "fromBlock": max_block_id,
-            "toBlock": checkingBlock,
-            "topics": [
-                [transfer_event_topic],
-                topics
-            ]
-        })
-        log_loop(log_filter)
-        log_filter = web3.eth.filter({
-            "fromBlock": max_block_id,
-            "toBlock": checkingBlock,
-            "topics": [
-                [transfer_event_topic],
-                [],
-                topics
-            ]
-        })
-        log_loop(log_filter)
+    log_filter = web3.eth.filter({
+        "fromBlock": max_block_id,
+        "toBlock": checkingBlock,
+        "topics": [
+            [transfer_event_topic],
+            topics
+        ]
+    })
+    log_loop(log_filter)
+    
+    log_filter = web3.eth.filter({
+        "fromBlock": max_block_id,
+        "toBlock": checkingBlock,
+        "topics": [
+            [transfer_event_topic],
+            [],
+            topics
+        ]
+    })
+    log_loop(log_filter)
 
-        # TODO: max_block_id cannot just be incremented you need to get the maximum processed block from the filter
-        # since there may be more relevant events
-        
-        max_block_id = checkingBlock + 1
-    else:
-        print("Ended transfer syncing")
-        break
+    # TODO: max_block_id cannot just be incremented you need to get the maximum processed block from the filter
+    # since there may be more relevant events
+    
+    max_block_id = checkingBlock + 1
+    pbar.update(1001)
+
+pbar.close()
