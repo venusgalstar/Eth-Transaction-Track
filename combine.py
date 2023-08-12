@@ -1,21 +1,10 @@
-from web3 import Web3
-from web3.middleware import geth_poa_middleware
+from env import web3
 import sqlite3
 import os
 from env import TOKEN_ABI
 from env import nodeUrl
 
 combineDBName = "account.db"
-
-# Connect to Ethereum node
-if nodeUrl.startswith("http"):
-    web3 = Web3(Web3.HTTPProvider(nodeUrl))  # "http://publicnode:8545"
-elif nodeUrl.startswith("ws"):
-    web3 = Web3(Web3.WebsocketProvider(nodeUrl))  # "ws://publicnode:8546"
-else:
-    web3 = Web3(Web3.IPCProvider(nodeUrl))  # "/home/geth/.ethereum/geth.ipc"
-
-web3.middleware_onion.inject(geth_poa_middleware, layer=0)
 
 def create_databse():
     connectionCombine = sqlite3.connect(combineDBName)

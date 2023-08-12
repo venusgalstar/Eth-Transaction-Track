@@ -1,5 +1,4 @@
-from web3 import Web3
-from web3.middleware import geth_poa_middleware
+from env import web3
 from env import accounts
 from env import startBlock
 from env import confirmationBlocks
@@ -11,19 +10,6 @@ import sqlite3
 import os
 
 dbName = "transactions.db"
-
-# TODO: Move this into a separate utility script as mentioned in clean-up
-# web3 access is reoccuring in multiple places
-
-# Connect to Ethereum node
-if nodeUrl.startswith("http"):
-    web3 = Web3(Web3.HTTPProvider(nodeUrl)) # "http://publicnode:8545"
-elif nodeUrl.startswith("ws"):
-    web3 = Web3(Web3.WebsocketProvider(nodeUrl)) # "ws://publicnode:8546"
-else:
-    web3 = Web3(Web3.IPCProvider(nodeUrl)) # "/home/geth/.ethereum/geth.ipc"
-
-web3.middleware_onion.inject(geth_poa_middleware, layer=0)
 
 # Create sqlite database
 def create_database():

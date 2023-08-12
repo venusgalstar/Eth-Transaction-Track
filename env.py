@@ -1,6 +1,19 @@
+from web3 import Web3
+from web3.middleware import geth_poa_middleware
+
 confirmationBlocks = "1"
 
 nodeUrl = "/media/blockchain/execution/geth/geth.ipc"
+
+# Connect to Ethereum node
+if nodeUrl.startswith("http"):
+    web3 = Web3(Web3.HTTPProvider(nodeUrl))  # "http://publicnode:8545"
+elif nodeUrl.startswith("ws"):
+    web3 = Web3(Web3.WebsocketProvider(nodeUrl))  # "ws://publicnode:8546"
+else:
+    web3 = Web3(Web3.IPCProvider(nodeUrl))  # "/home/geth/.ethereum/geth.ipc"
+
+web3.middleware_onion.inject(geth_poa_middleware, layer=0)
 
 pollingPeriod = 5
 
