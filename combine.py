@@ -2,6 +2,7 @@ from env import web3
 import sqlite3
 import os
 from env import TOKEN_ABI
+from tqdm import tqdm
 
 combineDBName = "account.db"
 
@@ -132,9 +133,11 @@ def sync_token():
     ''')
     tokenList = combineQ.fetchall()
 
+    pbar = tqdm(total = len(tokenList))
+
     for token in tokenList:
+        pbar.update(1)
         try:
-            print(token[0])
             tokenContract = web3.eth.contract(address = token[0], abi = TOKEN_ABI)
             name = tokenContract.functions.name().call()
             symbol = tokenContract.functions.symbol().call()
@@ -148,8 +151,7 @@ def sync_token():
             connectionCombine.commit()
         except:
             continue
-
-    print(len(tokenList))
+    pbar.close()
 
     connectionCombine.commit()   
     connectionCombine.close()
