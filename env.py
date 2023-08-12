@@ -20,3 +20,6 @@ topics = []
 
 for account in accounts:
     topics.append(account.lower().replace("0x", "0x000000000000000000000000"))
+
+for idx in range(len(accounts)):
+    accounts[idx] = accounts[idx].lower()

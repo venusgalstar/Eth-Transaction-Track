@@ -1,7 +1,7 @@
 import sqlite3
 
-address = "0x7361A0E33F717BaF49cd946f5B748E6AA81cC6Fb"
-transactionHash = ""
+# address = "0x7361A0E33F717BaF49cd946f5B748E6AA81cC6Fb"
+transactionHash = "0x957ea400a43c8def6d459051e9f3850dc8344ec607be6a2d3883aba75a708832"
 
 def get_all_data_by_hash():
     conn = sqlite3.connect("account.db")

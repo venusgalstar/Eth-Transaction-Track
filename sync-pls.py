@@ -58,8 +58,8 @@ def insertTxsFromBlock(block, c):
     
     for txNumber in range(0, len(block.transactions)):
         trans = block.transactions[txNumber]
-        txfrom = trans['from']
-        txto = trans['to']
+        txfrom = trans['from'].lower()
+        txto = trans['to'].lower()
 
         if not(txfrom in accounts) and not(txto in accounts):
             continue
