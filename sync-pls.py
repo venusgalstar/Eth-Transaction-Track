@@ -2,8 +2,6 @@ from env import web3
 from env import accounts
 from env import startBlock
 from env import confirmationBlocks
-from env import nodeUrl
-from env import pollingPeriod
 
 import time
 import sqlite3

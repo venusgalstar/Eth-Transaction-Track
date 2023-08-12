@@ -2,8 +2,6 @@ from env import web3
 from env import PAIR_ABI
 from env import startBlock
 from env import confirmationBlocks
-from env import nodeUrl
-from env import pollingPeriod
 from env import topics
 import time
 import sqlite3
@@ -12,8 +10,6 @@ import os
 dbName = "swap.db"
 
 # Create sqlite database
-
-
 def create_database():
     conn = sqlite3.connect(dbName)
     c = conn.cursor()

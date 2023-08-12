@@ -4,8 +4,6 @@ import sqlite3
 import os
 from env import startBlock
 from env import confirmationBlocks
-from env import nodeUrl
-from env import pollingPeriod
 from env import topics
 
 dbName = "transfer.db"

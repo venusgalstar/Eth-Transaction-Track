@@ -2,7 +2,6 @@ from env import web3
 import sqlite3
 import os
 from env import TOKEN_ABI
-from env import nodeUrl
 
 combineDBName = "account.db"
 
