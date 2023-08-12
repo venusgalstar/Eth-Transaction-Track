@@ -4,3 +4,4 @@ account.db
 transfer.db
 swap.db
 transactions.db
+result.csv
