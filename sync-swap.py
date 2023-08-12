@@ -4,6 +4,7 @@ from env import startBlock
 from env import confirmationBlocks
 from env import topics
 import time
+from tqdm import tqdm
 import sqlite3
 import os
 
@@ -93,33 +94,33 @@ def swap_loop(event_filter):
 
 # Fetch all of new (not in index) Ethereum blocks and add transactions to index
 max_block_id = startBlock
+endblock = int(web3.eth.blockNumber) - int(confirmationBlocks)
+swap_event_topic = web3.keccak(text="Swap(address,uint256,uint256,uint256,uint256,address)").hex()
 
-print("Starting swap syncing")
-while True:
+print("Starting swap syncing " + str(endblock - max_block_id) + " blocks, final block number is " + str(endblock))
+
+pbar = tqdm(total = endblock - max_block_id)
+
+while max_block_id < endblock :
 
     # TODO: Again logging using tqdm or something similar; proper instead of debugging print for yourself
 
-    # print(max_block_id)
-
-    endblock = int(web3.eth.blockNumber) - int(confirmationBlocks)
-    swap_event_topic = web3.keccak(text="Swap(address,uint256,uint256,uint256,uint256,address)").hex()
     checkingBlock = max_block_id + 1000
 
     if checkingBlock > endblock:
         checkingBlock = endblock
 
-    if max_block_id < endblock :
-        swap_filter = web3.eth.filter({
-            "fromBlock": max_block_id,
-            "toBlock": checkingBlock,
-            "topics": [
-                [swap_event_topic],
-                [],
-                topics
-            ]
-        })
-        swap_loop(swap_filter)
-        max_block_id = checkingBlock + 1
-    else:
-        print("Ended swap syncing")
-        break
+    swap_filter = web3.eth.filter({
+        "fromBlock": max_block_id,
+        "toBlock": checkingBlock,
+        "topics": [
+            [swap_event_topic],
+            [],
+            topics
+        ]
+    })
+    swap_loop(swap_filter)
+    max_block_id = checkingBlock + 1
+    pbar.update(1001)
+
+pbar.close()

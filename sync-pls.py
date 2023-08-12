@@ -81,9 +81,7 @@ c = conn.cursor()
 
 endblock = int(web3.eth.blockNumber) - int(confirmationBlocks)
 
-for blockHeight in range(max_block_id, endblock):        
-        
-    
+for blockHeight in range(max_block_id, endblock):            
     block = web3.eth.getBlock(blockHeight, True)
     if len(block.transactions) > 0:
         insertTxsFromBlock(block, c)
