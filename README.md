@@ -1,6 +1,5 @@
 # Indexer for Pulsechain especially erc20 transfer and swap on dex
 
-# Contact me on t.me/@Capdev22, flexible chat for project. Don't mention it on upwork.
 
 Indexer is written in Python. It works as a service in background:
 
