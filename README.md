@@ -65,23 +65,7 @@ To improve syncing past transfer events, Indexer don't check every transaction b
 
 ## Installation
 
-### Ethereum Node
 
-Make sure your Ethereum node is installed and is fully synced. You can check its API and best block height with the command:
-
-```
-curl --data '{"method":"eth_blockNumber","params":[],"id":1,"jsonrpc":"2.0"}' -H "Content-Type: application/json" -X POST localhost:8545
-```
-
-### Python modules
-
-Install Python 3. Install python modules:
-
-```
-apt install python3-pip
-pip3 install web3
-pip3 install psycopg2
-```
 ### ERC20 transfer & swap indexer
 
 `sync-transfer.py` is a script which makes erc20 transfer transaction logging
@@ -115,23 +99,3 @@ To test connection from script, set a connection line in `test.py`, and run it. 
 
 # API request examples
 
-Get last 25 Ethereum transactions without ERC-20 transactions for address 0xFBb1b73C4f0BDa4f67dcA266ce6Ef42f520fBB98:
-
-```
-curl -k -X GET "http://localhost:3000/ethtxs?and=(contract_to.eq.,or(txfrom.eq.0xFBb1b73C4f0BDa4f67dcA266ce6Ef42f520fBB98,txto.eq.0xFBb1b73C4f0BDa4f67dcA266ce6Ef42f520fBB98))&order=time.desc&limit=25"
-
-```
-
-Get last 25 ERC-20 transactions without Ethereum transactions for address 0xFBb1b73C4f0BDa4f67dcA266ce6Ef42f520fBB98:
-
-```
-curl -k -X GET "http://localhost:3000/ethtxs?and=(contract_to.neq.,or(txfrom.eq.0xFBb1b73C4f0BDa4f67dcA266ce6Ef42f520fBB98,txto.eq.0xFBb1b73C4f0BDa4f67dcA266ce6Ef42f520fBB98))&order=time.desc&limit=25"
-
-```
-
-Get last 25 transactions for both ERC-20 and Ethereum for address 0xFBb1b73C4f0BDa4f67dcA266ce6Ef42f520fBB98:
-
-```
-curl -k -X GET "http://localhost:3000/ethtxs?and=(or(txfrom.eq.0xFBb1b73C4f0BDa4f67dcA266ce6Ef42f520fBB98,txto.eq.0xFBb1b73C4f0BDa4f67dcA266ce6Ef42f520fBB98))&order=time.desc&limit=25"
-
-```
