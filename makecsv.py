@@ -15,6 +15,8 @@ combineQ.execute('''
         select count(transactionHash) from transfer
         union
         select count(transactionHash) from transactions
+        union
+        select count(transactionHash) from wrap
     ''')
 countList = combineQ.fetchall()
 transactionCount = countList[0] + countList[1]
@@ -22,7 +24,6 @@ transactionCount = countList[0] + countList[1]
 pbar = tqdm(total = len(transactionCount))
 
 def division(numberS, decimalS):
-    print(numberS)
     lenS = int(numberS, 10)
     decS = int(decimalS, 10)
     # return numberS[:lenS - decS] + '.' + numberS[ lenS - decS :]
@@ -57,13 +58,12 @@ with open('result.csv', 'w', newline='') as file:
     transactions = combineQ.fetchall()
 
     for trans in transactions:
-        print(trans)
 
         pbar.update(1)
         row = []
         row.append(trans[7]) # hash
         row.append(trans[1].lower()) # sender
-        row.append(trans[4].lower()) # sender
+        row.append(trans[4].lower()) # receiver
         row.append("")
         row.append(0)
         row.append("")
@@ -105,7 +105,6 @@ with open('result.csv', 'w', newline='') as file:
     transfers = combineQ.fetchall()
     
     for trans in transfers:
-        print(trans)
 
         pbar.update(1)
         row = []
@@ -126,13 +125,54 @@ with open('result.csv', 'w', newline='') as file:
         row.append(datetime.fromtimestamp(block['timestamp']))
 
         if not(row[1] in accounts):
-            row[3] = "Buy Currency" # Type
+            row[3] = "Income" # Type
             row[4] = division(trans[3], trans[8]) # value
             row[5] = trans[7]
         else:
-            row[3] = "Sell Currency" # Type
+            row[3] = "Withdraw" # Type
             row[6] = division(trans[3], trans[8]) # value
             row[7] = trans[7]
+
+        writer.writerow(row)
+
+    combineQ.execute('''
+        select * from wrap
+    ''')
+
+    swaps = combineQ.fetchall()
+    
+    for trans in swaps:
+        
+        pbar.update(1)
+        row = []
+        row.append(trans[4]) # hash
+        row.append(trans[1].lower()) # sender
+        row.append(trans[1].lower()) # receiver
+        row.append("")
+        row.append(0)
+        row.append("")
+        row.append(0)
+        row.append("")
+        row.append(0) # fee
+        row.append("PLS") # Fee currency
+        row.append("PulseChain Transaction")  # Exchange
+        row.append("")
+        row.append("")
+        block = web3.eth.getBlock(trans[0], True)
+        row.append(datetime.fromtimestamp(block['timestamp']))
+
+        if trans[3] == "Withdraw":
+            row[3] = "Swap" # Type
+            row[4] = division(trans[2], "18") # value
+            row[5] = "PLS"
+            row[6] = division(trans[2], "18") # value
+            row[7] = "WPLS"
+        else:
+            row[3] = "Swap" # Type
+            row[4] = division(trans[2], "18") # value
+            row[5] = "WPLS"
+            row[6] = division(trans[2], "18") # value
+            row[7] = "PLS"
 
         writer.writerow(row)
         

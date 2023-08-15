@@ -78,6 +78,18 @@ def create_databse():
         )
     ''')
 
+    # Copy wrap
+    combineQ.execute('''
+        CREATE TABLE wrap (
+            blockNumber INTEGER,
+            fromAddress TEXT,
+            amount TEXT,
+            type TEXT,
+            transactionHash TEXT,
+            unique (transactionHash)
+        )
+    ''')
+
     connectionCombine.commit()
     connectionCombine.close()
 
@@ -120,6 +132,16 @@ def combine_database():
 
     connectionCombine.commit() 
 
+    # Copy transaction
+    combineQ.execute('''
+        ATTACH DATABASE "wrap.db" AS wrap
+    ''')
+
+    combineQ.execute('''
+        INSERT or IGNORE INTO wrap SELECT * FROM wrap.wrap
+    ''')
+    
+    connectionCombine.commit() 
     connectionCombine.close()
 
 def sync_token():
