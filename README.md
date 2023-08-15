@@ -43,14 +43,31 @@ Transactions table files for PLS, Native currency:
 - 'gasUsed' Used gas for this transaction,
 - 'transactionHash' Hash of transaction which occured transfer
 
-Toekn table for token info:
+Token table for token info:
 
 - 'address' Token address ,
 - 'name' Token name,
 - 'symbol' Token symbol,
 - 'decimal' Token decimal,
 
-To improve syncing past transfer events, Indexer don't check every transaction but transfer event by dumping 100 blocks.
+CSV for final result:
+
+- Tx-ID, TransactionHash
+- Sender, EOA who makes transaction
+- Receiver, Account which receives transaction
+- Type, Buy, Sell, Withdraw, Income
+- Buy Amount, 
+- Buy Currency,
+- Sell Amount, 
+- Sell Currency,
+- Fee, Gas fee used for transaction
+- Fee Currency, PLS
+- Exchange, PulseChain
+- Trade-Group,
+- Comment,
+- Date, Transaction Date
+
+To improve syncing past transfer events, Indexer don't check every transaction but transfer event by dumping 1000 blocks.
 
 
 ## Ethereum Indexer's API
@@ -71,6 +88,8 @@ To improve syncing past transfer events, Indexer don't check every transaction b
 `sync-transfer.py` is a script which makes erc20 transfer transaction logging
 `sync-swap.py` is a script which makes erc20 swap transaction logging
 `sync-pls.py` is a script which makes PLS transfer transaction logging
+`combine.py` is a script which combines database from above and token info logging
+`makecsv.py` is a script which makes csv file
 
 - DB_NAME: SQL database name. Example: `transfer.db`.
 - ETH_URL: Ethereum node url to reach the node. Supports websocket, http and ipc. See examples in `sync-pls.py`.

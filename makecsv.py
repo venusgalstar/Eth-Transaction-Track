@@ -50,50 +50,50 @@ with open('result.csv', 'w', newline='') as file:
 
     transfer_event_topic = web3.keccak(text="Transfer(address,address,uint256)").hex()
 
-    # combineQ.execute('''
-    #     select * from transactions
-    # ''')
+    combineQ.execute('''
+        select * from transactions
+    ''')
 
-    # transactions = combineQ.fetchall()
+    transactions = combineQ.fetchall()
 
-    # for trans in transactions:
-    #     print(trans)
+    for trans in transactions:
+        print(trans)
 
-    #     pbar.update(1)
-    #     row = []
-    #     row.append(trans[7]) # hash
-    #     row.append(trans[1].lower()) # sender
-    #     row.append(trans[4].lower()) # sender
-    #     row.append("")
-    #     row.append(0)
-    #     row.append("")
-    #     row.append(0)
-    #     row.append("")
-    #     row.append(division(trans[6], "18")) # fee
-    #     row.append("PLS") # Fee currency
-    #     row.append("PulseChain Transaction")  # Exchange
-    #     row.append("")
-    #     row.append("")
-    #     block = web3.eth.getBlock(trans[0], True)
-    #     row.append(datetime.fromtimestamp(block['timestamp']))
+        pbar.update(1)
+        row = []
+        row.append(trans[7]) # hash
+        row.append(trans[1].lower()) # sender
+        row.append(trans[4].lower()) # sender
+        row.append("")
+        row.append(0)
+        row.append("")
+        row.append(0)
+        row.append("")
+        row.append(division(trans[6], "18")) # fee
+        row.append("PLS") # Fee currency
+        row.append("PulseChain Transaction")  # Exchange
+        row.append("")
+        row.append("")
+        block = web3.eth.getBlock(trans[0], True)
+        row.append(datetime.fromtimestamp(block['timestamp']))
 
-    #     transHex = web3.eth.get_transaction(trans[7])
+        transHex = web3.eth.get_transaction(trans[7])
 
-    #     if transHex.input == '0x':
-    #         if not(row[1] in accounts):
-    #             row[3] = "Income" # Type
-    #             row[4] = division(trans[5], "18") # value
-    #             row[5] = "PLS"
-    #         else:
-    #             row[3] = "Withdraw" # Type
-    #             row[6] = division(trans[5], "18") # value
-    #             row[7] = "PLS"
-    #     elif transHex.input[:5] != transfer_event_topic[:5]:
-    #         row[3] = "Other Fee"
-    #         row[6] = division(trans[5], "18") # value
-    #         row[7] = "PLS"
+        if transHex.input == '0x':
+            if not(row[1] in accounts):
+                row[3] = "Income" # Type
+                row[4] = division(trans[5], "18") # value
+                row[5] = "PLS"
+            else:
+                row[3] = "Withdraw" # Type
+                row[6] = division(trans[5], "18") # value
+                row[7] = "PLS"
+        elif transHex.input[:5] != transfer_event_topic[:5]:
+            row[3] = "Other Fee"
+            row[6] = division(trans[5], "18") # value
+            row[7] = "PLS"
 
-    #     writer.writerow(row)
+        writer.writerow(row)
 
     combineQ.execute('''
         select t1.*, t2.symbol, t2.decimal
