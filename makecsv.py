@@ -2,6 +2,7 @@ import sqlite3
 import os
 from env import web3
 from env import accounts
+from env import CSVAccount
 import csv
 from tqdm import tqdm
 from datetime import datetime
