@@ -40,8 +40,8 @@ def handle_event(event, c):
         amount = 0
     else : amount = int(event['data'], 16)
 
-    sender = event['topics'][1].hex().replace("0x000000000000000000000000","0x")
-    receiver = event['topics'][2].hex().replace("0x000000000000000000000000","0x")
+    sender = event['topics'][1].hex().replace("0x000000000000000000000000","0x").lower()
+    receiver = event['topics'][2].hex().replace("0x000000000000000000000000","0x").lower()
 
     if not(event['topics'][1].hex() in topics) and not(event['topics'][2].hex() in topics):
         return
@@ -88,7 +88,6 @@ endblock = int(web3.eth.blockNumber) - int(confirmationBlocks)
 transfer_event_topic = web3.keccak(text="Transfer(address,address,uint256)").hex()
 
 print("Starting transfer syncing " + str(endblock - max_block_id) + " blocks, final block number is " + str(endblock))
-
 pbar = tqdm(total = endblock - max_block_id)
 
 while max_block_id < endblock :

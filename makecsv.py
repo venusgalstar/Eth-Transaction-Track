@@ -13,14 +13,14 @@ connectionCombine = sqlite3.connect(combineDBName)
 combineQ = connectionCombine.cursor()
 
 combineQ.execute('''
-        select count(transactionHash) from transfer
-        union
-        select count(transactionHash) from transactions
-        union
-        select count(transactionHash) from wrap
-    ''')
+        select count(transactionHash) from transfer where fromAddress = ? or toAddress = ?
+        union all
+        select count(transactionHash) from transactions where fromAddress = ?
+        union all
+        select count(transactionHash) from wrap where fromAddress = ?
+    ''', (CSVAccount, CSVAccount, CSVAccount, CSVAccount))
 countList = combineQ.fetchall()
-transactionCount = countList[0] + countList[1]
+transactionCount = countList[0] + countList[1] + countList[2]
 
 pbar = tqdm(total = len(transactionCount))
 
@@ -53,8 +53,8 @@ with open('result.csv', 'w', newline='') as file:
     transfer_event_topic = web3.keccak(text="Transfer(address,address,uint256)").hex()
 
     combineQ.execute('''
-        select * from transactions
-    ''')
+        select * from transactions where fromAddress = ?
+    ''',(CSVAccount,))
 
     transactions = combineQ.fetchall()
 
@@ -63,8 +63,6 @@ with open('result.csv', 'w', newline='') as file:
         pbar.update(1)
         row = []
         row.append(trans[7]) # hash
-        row.append(trans[1].lower()) # sender
-        row.append(trans[4].lower()) # receiver
         row.append("")
         row.append(0)
         row.append("")
@@ -82,36 +80,41 @@ with open('result.csv', 'w', newline='') as file:
 
         if transHex.input == '0x':
             if not(row[1] in accounts):
-                row[3] = "Income" # Type
+                row[1] = "Income" # Type
+                row[2] = division(trans[5], "18") # value
+                row[3] = "PLS"
+            else:
+                row[1] = "Withdraw" # Type
                 row[4] = division(trans[5], "18") # value
                 row[5] = "PLS"
-            else:
-                row[3] = "Withdraw" # Type
-                row[6] = division(trans[5], "18") # value
-                row[7] = "PLS"
         elif transHex.input[:5] != transfer_event_topic[:5]:
-            row[3] = "Other Fee"
-            row[6] = division(trans[5], "18") # value
-            row[7] = "PLS"
+            row[1] = "Other Fee"
+            row[4] = division(trans[5], "18") # value
+            row[5] = "PLS"
 
         writer.writerow(row)
 
     combineQ.execute('''
         select t1.*, t2.symbol, t2.decimal
-        from transfer as t1
+        from 
+        (
+            select * from transfer 
+            where fromAddress = ? 
+            or toAddress = ?
+        )
+        as t1
         left join token as t2
         on t1.address = t2.address
-    ''')
+    ''',(CSVAccount, CSVAccount,))
 
     transfers = combineQ.fetchall()
+    print(transfers)
     
     for trans in transfers:
 
         pbar.update(1)
         row = []
         row.append(trans[5]) # hash
-        row.append(trans[1].lower()) # sender
-        row.append(trans[2].lower()) # receiver
         row.append("")
         row.append(0)
         row.append("")
@@ -126,19 +129,19 @@ with open('result.csv', 'w', newline='') as file:
         row.append(datetime.fromtimestamp(block['timestamp']))
 
         if not(row[1] in accounts):
-            row[3] = "Income" # Type
+            row[1] = "Income" # Type
+            row[2] = division(trans[3], trans[8]) # value
+            row[3] = trans[7]
+        else:
+            row[1] = "Withdraw" # Type
             row[4] = division(trans[3], trans[8]) # value
             row[5] = trans[7]
-        else:
-            row[3] = "Withdraw" # Type
-            row[6] = division(trans[3], trans[8]) # value
-            row[7] = trans[7]
 
         writer.writerow(row)
 
     combineQ.execute('''
-        select * from wrap
-    ''')
+        select * from wrap where fromAddress = ?
+    ''',(CSVAccount,))
 
     swaps = combineQ.fetchall()
     
@@ -147,8 +150,6 @@ with open('result.csv', 'w', newline='') as file:
         pbar.update(1)
         row = []
         row.append(trans[4]) # hash
-        row.append(trans[1].lower()) # sender
-        row.append(trans[1].lower()) # receiver
         row.append("")
         row.append(0)
         row.append("")
@@ -163,17 +164,17 @@ with open('result.csv', 'w', newline='') as file:
         row.append(datetime.fromtimestamp(block['timestamp']))
 
         if trans[3] == "Withdraw":
-            row[3] = "Swap" # Type
-            row[4] = division(trans[2], "18") # value
-            row[5] = "PLS"
-            row[6] = division(trans[2], "18") # value
-            row[7] = "WPLS"
-        else:
-            row[3] = "Swap" # Type
+            row[1] = "Swap" # Type
+            row[2] = division(trans[2], "18") # value
+            row[3] = "PLS"
             row[4] = division(trans[2], "18") # value
             row[5] = "WPLS"
-            row[6] = division(trans[2], "18") # value
-            row[7] = "PLS"
+        else:
+            row[1] = "Swap" # Type
+            row[2] = division(trans[2], "18") # value
+            row[3] = "WPLS"
+            row[4] = division(trans[2], "18") # value
+            row[5] = "PLS"
 
         writer.writerow(row)
         

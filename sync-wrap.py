@@ -45,7 +45,7 @@ def handle_event(event, c):
         amount = 0
     else : amount = int(event['data'], 16)
 
-    sender = event['topics'][1].hex().replace("0x000000000000000000000000","0x")
+    sender = event['topics'][1].hex().replace("0x000000000000000000000000","0x").lower()
     
     if depositTopic == event['topics'][0]:
         type = "Deposit"

@@ -62,10 +62,10 @@ def insertTxsFromBlock(block, c):
 
         data = {
             'blockNumber': blockid,
-            'fromAddress': trans['from'],
+            'fromAddress': txfrom,
             'gas': trans['gas'],
             'gasPrice': trans['gasPrice'],
-            'toAddress': trans['to'],
+            'toAddress': txto,
             'value': str(trans['value']),
             'gasUsed': transReceipt['gasUsed'],
             'transactionHash': transReceipt['transactionHash'].hex(),
