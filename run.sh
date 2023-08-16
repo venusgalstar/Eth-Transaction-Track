@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+sudo rm *.db
 sudo python3 sync-swap.py 
 sudo python3 sync-transfer.py 
 sudo python3 sync-pls.py 

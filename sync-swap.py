@@ -41,8 +41,8 @@ def handle_swap_event(event, c):
 
     # try:
     pair_contract = web3.eth.contract(address = event['address'], abi = PAIR_ABI)
-    token0 = pair_contract.functions.token0().call().lower()
-    token1 = pair_contract.functions.token1().call().lower()
+    token0 = pair_contract.functions.token0().call()
+    token1 = pair_contract.functions.token1().call()
 
     amount0In = str(int(event['data'][2:65], 16))
     amount1In = str(int(event['data'][66:129], 16))

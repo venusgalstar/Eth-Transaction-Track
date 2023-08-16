@@ -35,8 +35,6 @@ with open('result.csv', 'w', newline='') as file:
      
     writer.writerow([
         "Tx-ID",
-        "Sender",
-        "Receiver",
         "Type", 
         "Buy Amount", 
         "Buy Currency",
@@ -53,8 +51,15 @@ with open('result.csv', 'w', newline='') as file:
     transfer_event_topic = web3.keccak(text="Transfer(address,address,uint256)").hex()
 
     combineQ.execute('''
-        select * from transactions where fromAddress = ?
-    ''',(CSVAccount,))
+        select t1.*, t2.transactionHash as flag, t2.fromAddress as checker
+        from
+        (
+            select * from transactions 
+            where fromAddress = ?) as t1
+        left join swap as t2 
+        on t1.transactionHash = t2.transactionHash 
+        where flag IS NULL OR checker != ?
+    ''',(CSVAccount,CSVAccount))
 
     transactions = combineQ.fetchall()
 
@@ -79,7 +84,7 @@ with open('result.csv', 'w', newline='') as file:
         transHex = web3.eth.get_transaction(trans[7])
 
         if transHex.input == '0x':
-            if not(row[1] in accounts):
+            if trans[1] != CSVAccount:
                 row[1] = "Income" # Type
                 row[2] = division(trans[5], "18") # value
                 row[3] = "PLS"
@@ -95,7 +100,7 @@ with open('result.csv', 'w', newline='') as file:
         writer.writerow(row)
 
     combineQ.execute('''
-        select t1.*, t2.symbol, t2.decimal
+        select t1.*, t2.symbol, t2.decimal, t3.transactionHash as flag, t3.fromAddress as checker
         from 
         (
             select * from transfer 
@@ -105,10 +110,12 @@ with open('result.csv', 'w', newline='') as file:
         as t1
         left join token as t2
         on t1.address = t2.address
-    ''',(CSVAccount, CSVAccount,))
+        left join swap as t3
+        on t1.transactionHash = t3.transactionHash
+        where flag IS NULL or checker != ?
+    ''',(CSVAccount, CSVAccount,CSVAccount))
 
     transfers = combineQ.fetchall()
-    print(transfers)
     
     for trans in transfers:
 
@@ -128,7 +135,7 @@ with open('result.csv', 'w', newline='') as file:
         block = web3.eth.getBlock(trans[0], True)
         row.append(datetime.fromtimestamp(block['timestamp']))
 
-        if not(row[1] in accounts):
+        if trans[1] != CSVAccount:
             row[1] = "Income" # Type
             row[2] = division(trans[3], trans[8]) # value
             row[3] = trans[7]
@@ -164,17 +171,85 @@ with open('result.csv', 'w', newline='') as file:
         row.append(datetime.fromtimestamp(block['timestamp']))
 
         if trans[3] == "Withdraw":
-            row[1] = "Swap" # Type
+            row[1] = "Trade" # Type
             row[2] = division(trans[2], "18") # value
             row[3] = "PLS"
             row[4] = division(trans[2], "18") # value
             row[5] = "WPLS"
         else:
-            row[1] = "Swap" # Type
+            row[1] = "Trade" # Type
             row[2] = division(trans[2], "18") # value
             row[3] = "WPLS"
             row[4] = division(trans[2], "18") # value
             row[5] = "PLS"
+
+        writer.writerow(row)
+
+    combineQ.execute('''
+        select 
+        t1.*, t2.symbol as inSymbol, t2.decimal as inDecimal,
+        t3.symbol as outSymbol, t3.decimal as outDecimal,
+        t4.symbol as tInSymbol, t4.decimal as tInDecimal
+        from
+        (
+            select t1.*, t2.address as tInTokenAddress, t2.amount as tInAmount, t3.value as plsValue
+            from
+            (select * from swap 
+            where fromAddress = ?) as t1
+            left join 
+            (select * from transfer
+            where fromAddress = ?) as t2
+            on t1.transactionHash  = t2.transactionHash
+            left join
+            (select * from transactions
+            where fromAddress = ?) as t3
+            on t1.transactionHash = t3.transactionHash
+        ) as t1
+        left join token as t2
+        on t1.inTokenAddress = t2.address
+        left join token as t3
+        on t1.outTokenAddress = t3.address
+        left join token as t4
+        on t1.tInTokenAddress = t4.address
+    ''',(CSVAccount,CSVAccount,CSVAccount))
+
+    swaps = combineQ.fetchall()
+
+    # print(swaps)
+    
+    for trans in swaps:
+        
+        pbar.update(1)
+        row = []
+        row.append(trans[7]) # hash
+        row.append("")
+        row.append(0)
+        row.append("")
+        row.append(0)
+        row.append("")
+        row.append(0) # fee
+        row.append("PLS") # Fee currency
+        row.append("PulseChain Transaction")  # Exchange
+        row.append("")
+        row.append("")
+        block = web3.eth.getBlock(trans[0], True)
+        row.append(datetime.fromtimestamp(block['timestamp']))
+
+        row[1] = "Trade" # Type
+
+        print(trans[11])
+
+        if trans[11] is not None:
+            row[2] = division(trans[11], "18")
+            row[3] = "PLS"
+        elif trans[9] is not None:
+            row[2] = division(trans[10], trans[17])
+            row[3] = trans[16]
+        else:
+            row[2] = division(trans[3], trans[13]) # value
+            row[3] = trans[12]
+        row[4] = division(trans[4], trans[15]) # value
+        row[5] = trans[14]
 
         writer.writerow(row)
         

@@ -11,9 +11,6 @@ dbName = "wrap.db"
 depositTopic = web3.keccak(text="Deposit(address,uint256)").hex()
 withdrawTopic = web3.keccak(text="Withdrawal(address,uint256)").hex()
 
-print(depositTopic)
-print(withdrawTopic)
-
 # Create sqlite database
 def create_database():
     conn = sqlite3.connect(dbName)
@@ -37,9 +34,7 @@ def create_database():
 if not os.path.exists(dbName):
     create_database()
 
-def handle_event(event, c):
-    
-    print(event)
+def handle_event(event, c):    
 
     if len(event['data']) < len("0x000000000000000000000000"):
         amount = 0
