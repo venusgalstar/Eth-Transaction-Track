@@ -80,7 +80,7 @@ max_block_id = startBlock
 endblock = int(web3.eth.blockNumber) - int(confirmationBlocks)
 
 
-print("Starting transfer syncing " + str(endblock - max_block_id) + " blocks, final block number is " + str(endblock))
+print("Starting wrap syncing " + str(endblock - max_block_id) + " blocks, final block number is " + str(endblock))
 
 pbar = tqdm(total = endblock - max_block_id)
 

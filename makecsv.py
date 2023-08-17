@@ -7,6 +7,7 @@ import csv
 from tqdm import tqdm
 from datetime import datetime
 import pandas as pd
+import pandas as pd
 
 combineDBName = "account.db"
 
@@ -29,7 +30,10 @@ def division(numberS, decimalS):
     lenS = int(numberS, 10)
     decS = int(decimalS, 10)
     res = lenS/pow(10, decS)
+    res = lenS/pow(10, decS)
     # return numberS[:lenS - decS] + '.' + numberS[ lenS - decS :]
+    return "%.18f" % res
+    # return lenS/pow(10, decS)
     return "%.18f" % res
     # return lenS/pow(10, decS)
 
