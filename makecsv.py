@@ -6,6 +6,7 @@ from env import CSVAccount
 import csv
 from tqdm import tqdm
 from datetime import datetime
+import pandas as pd
 
 combineDBName = "account.db"
 
@@ -27,10 +28,12 @@ pbar = tqdm(total = len(transactionCount))
 def division(numberS, decimalS):
     lenS = int(numberS, 10)
     decS = int(decimalS, 10)
+    res = lenS/pow(10, decS)
     # return numberS[:lenS - decS] + '.' + numberS[ lenS - decS :]
-    return lenS/pow(10, decS)
+    return "%.18f" % res
+    # return lenS/pow(10, decS)
 
-with open('result.csv', 'w', newline='') as file:
+with open('result_test.csv', 'w', newline='') as file:
     writer = csv.writer(file)
      
     writer.writerow([
@@ -237,12 +240,10 @@ with open('result.csv', 'w', newline='') as file:
 
         row[1] = "Trade" # Type
 
-        print(trans[11])
-
-        if trans[11] is not None:
+        if trans[11] is not None and trans[11] != "0":
             row[2] = division(trans[11], "18")
             row[3] = "PLS"
-        elif trans[9] is not None:
+        elif trans[9] is not None and trans[9] != "0":
             row[2] = division(trans[10], trans[17])
             row[3] = trans[16]
         else:
@@ -254,3 +255,7 @@ with open('result.csv', 'w', newline='') as file:
         writer.writerow(row)
         
 connectionCombine.close()
+
+df = pd.read_csv("result_test.csv")
+sorted_df = df.sort_values(by=["Date"], ascending=False)
+sorted_df.to_csv('result.csv', index=False)

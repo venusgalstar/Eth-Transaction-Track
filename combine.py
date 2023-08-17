@@ -159,20 +159,20 @@ def sync_token():
 
     for token in tokenList:
         pbar.update(1)
-        # try:
-        tokenContract = web3.eth.contract(address = token[0], abi = TOKEN_ABI)
-        name = tokenContract.functions.name().call()
-        symbol = tokenContract.functions.symbol().call()
-        decimal = tokenContract.functions.decimals().call()
+        try:
+            tokenContract = web3.eth.contract(address = token[0], abi = TOKEN_ABI)
+            name = tokenContract.functions.name().call()
+            symbol = tokenContract.functions.symbol().call()
+            decimal = tokenContract.functions.decimals().call()
 
-        combineQ.execute('''
-            INSERT INTO token VALUES (
-                :address, :name, :symbol, :decimal
-            )
-        ''', {'address': token[0], 'name':name, 'symbol':symbol,  'decimal':decimal})
-        connectionCombine.commit()
-        # except:
-        #     continue
+            combineQ.execute('''
+                INSERT INTO token VALUES (
+                    :address, :name, :symbol, :decimal
+                )
+            ''', {'address': token[0], 'name':name, 'symbol':symbol,  'decimal':decimal})
+            connectionCombine.commit()
+        except:
+            continue
     pbar.close()
 
     connectionCombine.commit()   
