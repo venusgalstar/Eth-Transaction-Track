@@ -18,6 +18,7 @@ web3.middleware_onion.inject(geth_poa_middleware, layer=0)
 pollingPeriod = 5
 
 startBlock = 17230000
+endBlock = 18000000
 
 accounts = [
     "0x1daD947dD181fAa6c751ec14e2683e0A8fE2bf8c",

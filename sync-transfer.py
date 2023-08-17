@@ -3,6 +3,7 @@ import time
 import sqlite3
 import os
 from env import startBlock
+from env import endBlock
 from env import confirmationBlocks
 from env import topics
 from tqdm import tqdm
@@ -84,7 +85,7 @@ def log_loop(event_filter):
 
 # Fetch all of new (not in index) Ethereum blocks and add transactions to index
 max_block_id = startBlock
-endblock = int(web3.eth.blockNumber) - int(confirmationBlocks)
+endblock = endBlock
 transfer_event_topic = web3.keccak(text="Transfer(address,address,uint256)").hex()
 
 print("Starting transfer syncing " + str(endblock - max_block_id) + " blocks, final block number is " + str(endblock))

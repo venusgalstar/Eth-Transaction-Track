@@ -2,6 +2,7 @@
 from env import web3
 from env import accounts
 from env import startBlock
+from env import endBlock
 from env import confirmationBlocks
 from tqdm import tqdm
 import time
@@ -82,7 +83,7 @@ def insertTxsFromBlock(block, c):
 
 # Fetch all of new (not in index) Ethereum blocks and add transactions to index
 max_block_id = startBlock
-endblock = int(web3.eth.blockNumber) - int(confirmationBlocks)
+endblock = endBlock
 
 conn = sqlite3.connect(dbName)
 c = conn.cursor()

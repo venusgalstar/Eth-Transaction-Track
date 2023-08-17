@@ -1,6 +1,7 @@
 from env import web3
 from env import PAIR_ABI
 from env import startBlock
+from env import endBlock
 from env import confirmationBlocks
 from env import topics
 import time
@@ -95,7 +96,7 @@ def swap_loop(event_filter):
 
 # Fetch all of new (not in index) Ethereum blocks and add transactions to index
 max_block_id = startBlock
-endblock = int(web3.eth.blockNumber) - int(confirmationBlocks)
+endblock = endBlock
 swap_event_topic = web3.keccak(text="Swap(address,uint256,uint256,uint256,uint256,address)").hex()
 
 print("Starting swap syncing " + str(endblock - max_block_id) + " blocks, final block number is " + str(endblock))

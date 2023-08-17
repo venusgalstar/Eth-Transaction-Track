@@ -3,6 +3,7 @@ import time
 import sqlite3
 import os
 from env import startBlock
+from env import endBlock
 from env import confirmationBlocks
 from env import topics
 from tqdm import tqdm
@@ -42,7 +43,7 @@ def handle_event(event, c):
 
     sender = event['topics'][1].hex().replace("0x000000000000000000000000","0x").lower()
     
-    if depositTopic == event['topics'][0]:
+    if depositTopic == event['topics'][0].hex():
         type = "Deposit"
     else:
         type = "Withdraw"
@@ -77,8 +78,7 @@ def log_loop(event_filter):
 
 # Fetch all of new (not in index) Ethereum blocks and add transactions to index
 max_block_id = startBlock
-endblock = int(web3.eth.blockNumber) - int(confirmationBlocks)
-
+endblock = endBlock
 
 print("Starting wrap syncing " + str(endblock - max_block_id) + " blocks, final block number is " + str(endblock))
 

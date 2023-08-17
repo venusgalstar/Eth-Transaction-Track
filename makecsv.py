@@ -1,7 +1,8 @@
 import sqlite3
 import os
 from env import web3
-from env import accounts
+from env import startBlock
+from env import endBlock
 from env import CSVAccount
 import csv
 from tqdm import tqdm
@@ -15,12 +16,12 @@ connectionCombine = sqlite3.connect(combineDBName)
 combineQ = connectionCombine.cursor()
 
 combineQ.execute('''
-        select count(transactionHash) from transfer where fromAddress = ? or toAddress = ?
+        select count(transactionHash) from transfer where (fromAddress = ? or toAddress = ?) and blockNumber >= ? and blockNumber <= ? 
         union all
-        select count(transactionHash) from transactions where fromAddress = ?
+        select count(transactionHash) from transactions where fromAddress = ? and blockNumber >= ? and blockNumber <= ?
         union all
-        select count(transactionHash) from wrap where fromAddress = ?
-    ''', (CSVAccount, CSVAccount, CSVAccount, CSVAccount))
+        select count(transactionHash) from wrap where fromAddress = ? and blockNumber >= ? and blockNumber <= ?
+    ''', (CSVAccount, CSVAccount, startBlock, endBlock, CSVAccount, startBlock, endBlock, CSVAccount, startBlock, endBlock,))
 countList = combineQ.fetchall()
 transactionCount = countList[0] + countList[1] + countList[2]
 
@@ -58,15 +59,19 @@ with open(CSVAccount+'result_test.csv', 'w', newline='') as file:
     transfer_event_topic = web3.keccak(text="Transfer(address,address,uint256)").hex()
 
     combineQ.execute('''
-        select t1.*, t2.transactionHash as flag, t2.fromAddress as checker
+        select 
+            t1.*, t2.transactionHash as flag, t2.fromAddress as checker, 
+            t3.transactionHash as flag1, t3.fromAddress as checker1
         from
         (
             select * from transactions 
             where fromAddress = ?) as t1
         left join swap as t2 
         on t1.transactionHash = t2.transactionHash 
-        where flag IS NULL OR checker != ?
-    ''',(CSVAccount,CSVAccount))
+        left join wrap as t3
+        on t1.transactionHash = t3.transactionHash
+        where (flag IS NULL OR checker != ?) and (flag1 IS NULL or checker !=?) and t1.blockNumber >=? and t1.blockNumber <= ?
+    ''',(CSVAccount,CSVAccount,CSVAccount,startBlock,endBlock,))
 
     transactions = combineQ.fetchall()
 
@@ -119,8 +124,8 @@ with open(CSVAccount+'result_test.csv', 'w', newline='') as file:
         on t1.address = t2.address
         left join swap as t3
         on t1.transactionHash = t3.transactionHash
-        where flag IS NULL or checker != ?
-    ''',(CSVAccount, CSVAccount,CSVAccount))
+        where (flag IS NULL or checker != ?) and t1.blockNumber >=? and t1.blockNumber <=?
+    ''',(CSVAccount, CSVAccount,CSVAccount,startBlock,endBlock,))
 
     transfers = combineQ.fetchall()
     
@@ -154,8 +159,15 @@ with open(CSVAccount+'result_test.csv', 'w', newline='') as file:
         writer.writerow(row)
 
     combineQ.execute('''
-        select * from wrap where fromAddress = ?
-    ''',(CSVAccount,))
+        select t1.*, t2.gasUsed
+        from 
+            (select * from wrap where fromAddress = ?) as t1
+        left join
+            (select * from transactions where fromAddress = ?) as t2
+        on
+        t1.transactionHash = t2.transactionHash
+        where t1.blockNumber >=? and t1.blockNumber <=?
+    ''',(CSVAccount,CSVAccount,startBlock, endBlock,))
 
     swaps = combineQ.fetchall()
     
@@ -169,7 +181,12 @@ with open(CSVAccount+'result_test.csv', 'w', newline='') as file:
         row.append("")
         row.append(0)
         row.append("")
-        row.append(0) # fee
+
+        if trans[5] is not None and trans[5] != "0":
+            row.append(division(trans[5], "18")) # fee
+        else:
+            row.append(0) # fee
+
         row.append("PLS4") # Fee currency
         row.append("PLS Transaction")  # Exchange
         row.append("")
@@ -199,7 +216,7 @@ with open(CSVAccount+'result_test.csv', 'w', newline='') as file:
         t4.symbol as tInSymbol, t4.decimal as tInDecimal
         from
         (
-            select t1.*, t2.address as tInTokenAddress, t2.amount as tInAmount, t3.value as plsValue
+            select t1.*, t2.address as tInTokenAddress, t2.amount as tInAmount, t3.value as plsValue, t3.gasUsed
             from
             (select * from swap 
             where fromAddress = ?) as t1
@@ -218,7 +235,8 @@ with open(CSVAccount+'result_test.csv', 'w', newline='') as file:
         on t1.outTokenAddress = t3.address
         left join token as t4
         on t1.tInTokenAddress = t4.address
-    ''',(CSVAccount,CSVAccount,CSVAccount))
+        where blockNumber >=? and blockNumber <=?
+    ''',(CSVAccount,CSVAccount,CSVAccount,startBlock,endBlock,))
 
     swaps = combineQ.fetchall()
 
@@ -248,13 +266,17 @@ with open(CSVAccount+'result_test.csv', 'w', newline='') as file:
             row[4] = division(trans[11], "18")
             row[5] = "PLS4"
         elif trans[9] is not None and trans[9] != "0":
-            row[4] = division(trans[10], trans[17])
-            row[5] = trans[16]
+            row[4] = division(trans[10], trans[18])
+            row[5] = trans[17]
         else:
-            row[4] = division(trans[3], trans[13]) # value
-            row[5] = trans[12]
-        row[2] = division(trans[4], trans[15]) # value
-        row[3] = trans[14]
+            row[4] = division(trans[3], trans[14]) # value
+            row[5] = trans[13]
+
+        if trans[12] is not None and trans[12] != "0":
+            row[6] = division(trans[12], "18")
+
+        row[2] = division(trans[4], trans[16]) # value
+        row[3] = trans[15]
 
         writer.writerow(row)
         
