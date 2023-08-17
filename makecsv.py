@@ -81,8 +81,8 @@ with open(CSVAccount+'result_test.csv', 'w', newline='') as file:
         row.append(0)
         row.append("")
         row.append(division(trans[6], "18")) # fee
-        row.append("PLS") # Fee currency
-        row.append("PulseChain Transaction")  # Exchange
+        row.append("PLS4") # Fee currency
+        row.append("PLS Transaction")  # Exchange
         row.append("")
         row.append("")
         block = web3.eth.getBlock(trans[0], True)
@@ -94,15 +94,15 @@ with open(CSVAccount+'result_test.csv', 'w', newline='') as file:
             if trans[1] != CSVAccount:
                 row[1] = "Income" # Type
                 row[2] = division(trans[5], "18") # value
-                row[3] = "PLS"
+                row[3] = "PLS4"
             else:
                 row[1] = "Withdraw" # Type
                 row[4] = division(trans[5], "18") # value
-                row[5] = "PLS"
+                row[5] = "PLS4"
         elif transHex.input[:5] != transfer_event_topic[:5]:
             row[1] = "Other Fee"
             row[4] = division(trans[5], "18") # value
-            row[5] = "PLS"
+            row[5] = "PLS4"
 
         writer.writerow(row)
 
@@ -135,8 +135,8 @@ with open(CSVAccount+'result_test.csv', 'w', newline='') as file:
         row.append(0)
         row.append("")
         row.append(0) # fee
-        row.append("PLS") # Fee currency
-        row.append("PulseChain Transaction")  # Exchange
+        row.append("PLS4") # Fee currency
+        row.append("PLS Transaction")  # Exchange
         row.append("")
         row.append("")
         block = web3.eth.getBlock(trans[0], True)
@@ -170,8 +170,8 @@ with open(CSVAccount+'result_test.csv', 'w', newline='') as file:
         row.append(0)
         row.append("")
         row.append(0) # fee
-        row.append("PLS") # Fee currency
-        row.append("PulseChain Transaction")  # Exchange
+        row.append("PLS4") # Fee currency
+        row.append("PLS Transaction")  # Exchange
         row.append("")
         row.append("")
         block = web3.eth.getBlock(trans[0], True)
@@ -180,7 +180,7 @@ with open(CSVAccount+'result_test.csv', 'w', newline='') as file:
         if trans[3] == "Withdraw":
             row[1] = "Trade" # Type
             row[2] = division(trans[2], "18") # value
-            row[3] = "PLS"
+            row[3] = "PLS4"
             row[4] = division(trans[2], "18") # value
             row[5] = "WPLS"
         else:
@@ -188,7 +188,7 @@ with open(CSVAccount+'result_test.csv', 'w', newline='') as file:
             row[2] = division(trans[2], "18") # value
             row[3] = "WPLS"
             row[4] = division(trans[2], "18") # value
-            row[5] = "PLS"
+            row[5] = "PLS4"
 
         writer.writerow(row)
 
@@ -235,8 +235,8 @@ with open(CSVAccount+'result_test.csv', 'w', newline='') as file:
         row.append(0)
         row.append("")
         row.append(0) # fee
-        row.append("PLS") # Fee currency
-        row.append("PulseChain Transaction")  # Exchange
+        row.append("PLS4") # Fee currency
+        row.append("PLS Transaction")  # Exchange
         row.append("")
         row.append("")
         block = web3.eth.getBlock(trans[0], True)
@@ -246,7 +246,7 @@ with open(CSVAccount+'result_test.csv', 'w', newline='') as file:
 
         if trans[11] is not None and trans[11] != "0":
             row[4] = division(trans[11], "18")
-            row[5] = "PLS"
+            row[5] = "PLS4"
         elif trans[9] is not None and trans[9] != "0":
             row[4] = division(trans[10], trans[17])
             row[5] = trans[16]
