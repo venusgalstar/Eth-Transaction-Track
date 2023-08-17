@@ -49,6 +49,14 @@ Token table for token info:
 - 'symbol' Token symbol,
 - 'decimal' Token decimal,
 
+Wrap table for native currency to wrapped token info:
+
+- 'blockNumber' BlockNumber of transactionHash ,
+- 'fromAddress' EOA tried to deposit and withdraw,
+- 'amounts' Amount,
+- 'type' "withdraw" or "deposit",
+- 'transactionHash' TransactionHash of transaction,
+
 CSV for final result:
 
 - Tx-ID, TransactionHash
@@ -84,6 +92,7 @@ To improve syncing past transfer events, Indexer don't check every transaction b
 
 ### ERC20 transfer & swap indexer
 
+`evn.py` is a script which contains environment and common variables for all scripts
 `sync-transfer.py` is a script which makes erc20 transfer transaction logging
 `sync-swap.py` is a script which makes erc20 swap transaction logging
 `sync-pls.py` is a script which makes PLS transfer transaction logging
