@@ -59,6 +59,7 @@ def insertTxsFromBlock(block, c):
 
         # Perform receipt and strip operations lateron
         transReceipt = web3.eth.getTransactionReceipt(trans['hash'])
+        print(transReceipt)
 
         data = {
             'blockNumber': blockid,
@@ -67,7 +68,7 @@ def insertTxsFromBlock(block, c):
             'gasPrice': trans['gasPrice'],
             'toAddress': txto,
             'value': str(trans['value']),
-            'gasUsed': transReceipt['gasUsed'],
+            'gasUsed': str(transReceipt['gasUsed'] * transReceipt['effectiveGasPrice']),
             'transactionHash': transReceipt['transactionHash'].hex(),
         }
 
@@ -101,3 +102,4 @@ for blockHeight in range(max_block_id, endblock):
 conn.commit()
 conn.close()
 pbar.close()
+

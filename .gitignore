@@ -1,8 +1,5 @@
 .idea
 .vscode
-wrap.db
-account.db
-transfer.db
-swap.db
-transactions.db
-result.csv
+*.db
+*.csv
+*.zip

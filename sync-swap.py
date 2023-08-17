@@ -39,16 +39,17 @@ if not os.path.exists(dbName):
 
 def handle_swap_event(event, c):
 
+
     # try:
     pair_contract = web3.eth.contract(address = event['address'], abi = PAIR_ABI)
     token0 = pair_contract.functions.token0().call()
     token1 = pair_contract.functions.token1().call()
 
-    amount0In = str(int(event['data'][2:65], 16))
-    amount1In = str(int(event['data'][66:129], 16))
-    amount0Out = str(int(event['data'][130:193], 16))
-    amount1Out = str(int(event['data'][194:257], 16))
-
+    amount0In = str(int(event['data'][2:66], 16))
+    amount1In = str(int(event['data'][66:130], 16))
+    amount0Out = str(int(event['data'][130:194], 16))
+    amount1Out = str(int(event['data'][194:258], 16))
+    
     amountIn = 0
     amountOut = 0
 
