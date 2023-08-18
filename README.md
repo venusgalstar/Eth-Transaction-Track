@@ -75,8 +75,6 @@ CSV for final result:
 - Date, Transaction Date
 
 To improve syncing past transfer events, Indexer don't check every transaction but transfer event by dumping 1000 blocks.
-
-
 ## Ethereum Indexer's API
 
 # Ethereum Indexer Setup
@@ -90,34 +88,33 @@ To improve syncing past transfer events, Indexer don't check every transaction b
 ## Installation
 
 
-### ERC20 transfer & swap indexer
+### Transaction indexer
 
-`evn.py` is a script which contains environment and common variables for all scripts
+`env.py` is a script which contains environment and common variables for all scripts
 `sync-transfer.py` is a script which makes erc20 transfer transaction logging
 `sync-swap.py` is a script which makes erc20 swap transaction logging
 `sync-pls.py` is a script which makes PLS transfer transaction logging
 `combine.py` is a script which combines database from above and token info logging
 `makecsv.py` is a script which makes csv file
 
-- DB_NAME: SQL database name. Example: `transfer.db`.
-- ETH_URL: Ethereum node url to reach the node. Supports websocket, http and ipc. See examples in `sync-pls.py`.
-- START_BLOCK: the first block to synchronize from. Default is 1.
-- CONFIRMATIONS_BLOCK: the number of blocks to leave out of the synch from the end. I.e., last block is current `blockNumber - CONFIRMATIONS_BLOCK`. Default is 0.
+Important configuration info in env.py
+- startBlock: BlockNumber of startBlock to result
+- accounts: Account List we are consider
+- CSVAccount: Account Address to produce CSV
 
-Indexer can fetch transactions not from the beginning, but from special block number `START_BLOCK`. It will speed up indexing process and reduce database size.
+Indexer can fetch transactions not from the beginning, but from special block number `startBlock` to endBlock(period is 30 days). It will speed up indexing process and reduce database size.
 
-At first start, Indexer will store transactions starting from the block you set. It will take a time. After that, it will check for new blocks every `PERIOD` seconds and update the index.
+At first start, Indexer will store transactions starting from the block you set. It will take a time. 
 
 All config infos are in env.py
-You can change startBlockNumber and accounts.
+
+When you are confirmed about info in env.py, then this follow command to get result
 
 - ./run.sh
 
-Finally, you will get account.db which contains all info from this script.
+Finally, you will get Account+startBlock+endBlock+"result.csv" as a result
 
 ### Troubleshooting
-
-To test connection from script, set a connection line in `test.py`, and run it. In case of success, it will print erc20 transfer and swap history of specific address
 ### Transaction API with Postgrest
   
 ### Make Indexer's API public
