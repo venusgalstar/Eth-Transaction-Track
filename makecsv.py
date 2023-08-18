@@ -70,13 +70,13 @@ with open(CSVAccount + '_' + str(startBlock) +'_'+ str(endBlock) + 'test.csv', '
         from
         (
             select * from transactions 
-            where fromAddress = ? ) as t1
+            where fromAddress = ? or toAddress = ?) as t1
         left join swap as t2 
         on t1.transactionHash = t2.transactionHash 
         left join wrap as t3
         on t1.transactionHash = t3.transactionHash
         where (flag IS NULL OR checker != ?) and (flag1 IS NULL or checker !=?) and t1.blockNumber >=? and t1.blockNumber <= ?
-    ''',(CSVAccount,CSVAccount,CSVAccount,startBlock,endBlock,))
+    ''',(CSVAccount,CSVAccount,CSVAccount,CSVAccount, startBlock,endBlock,))
 
     transactions = combineQ.fetchall()
 
@@ -105,7 +105,12 @@ with open(CSVAccount + '_' + str(startBlock) +'_'+ str(endBlock) + 'test.csv', '
         transHex = web3.eth.get_transaction(trans[7])
 
         # if transaction has msg.value, it shoulbe "sell amount", if not, gasUsed will be "sell amount"
-        if trans[5] != "0":
+        if trans[4] == CSVAccount:
+            row[1] = "Income" # Type
+            row[4] = division(trans[5], "18") # value
+            row[5] = "PLS4"
+            row[6] = division(trans[6], "18")
+        elif trans[5] != "0":
             row[1] = "Withdraw" # Type
             row[4] = division(trans[5], "18") # value
             row[5] = "PLS4"

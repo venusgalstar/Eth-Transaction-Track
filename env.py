@@ -23,7 +23,7 @@ pollingPeriod = 5
 startBlock = 17230000
 
 # Calculating endblock based on 1 block needs 10s to confirm
-endBlock = startBlock + 30 * 24 * 360 # one block takes 10s to confirm
+endBlock = 17280000 #startBlock + 30 * 24 * 360 # one block takes 10s to confirm
 
 # AccountsList we are considering for catching events and transaction
 accounts = [
@@ -34,7 +34,7 @@ accounts = [
 ]
 
 # Account Address for CSV producing
-CSVAccount = "0x1daD947dD181fAa6c751ec14e2683e0A8fE2bf8c".lower()
+CSVAccount = "0x788425510Bf225b75580804E2441339E17e1a6a5".lower()
 
 # PulseX Dex Router Address
 dexRouter = [
