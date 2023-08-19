@@ -90,11 +90,11 @@ with open(CSVAccount + '_' + str(startBlock) +'_'+ str(endBlock) + 'test.csv', '
         row = []
         row.append(trans[7]) # hash
         row.append("")
-        row.append(0)
         row.append("")
-        row.append(0)
         row.append("")
-        row.append(0) # fee
+        row.append("")
+        row.append("")
+        row.append("") # fee
         row.append("PLS4") # Fee currency
         row.append("PLS Transaction")  # Exchange
         row.append("") # Trade Platfrom
@@ -107,9 +107,9 @@ with open(CSVAccount + '_' + str(startBlock) +'_'+ str(endBlock) + 'test.csv', '
         # if transaction has msg.value, it shoulbe "sell amount", if not, gasUsed will be "sell amount"
         if trans[4] == CSVAccount:
             row[1] = "Income" # Type
-            row[4] = division(trans[5], "18") # value
-            row[5] = "PLS4"
-            row[6] = division(trans[6], "18")
+            row[2] = division(trans[5], "18") # value
+            row[3] = "PLS4"
+            row[7] = ""
         elif trans[5] != "0":
             row[1] = "Withdraw" # Type
             row[4] = division(trans[5], "18") # value
@@ -148,11 +148,11 @@ with open(CSVAccount + '_' + str(startBlock) +'_'+ str(endBlock) + 'test.csv', '
         row = []
         row.append(trans[5]) # hash
         row.append("")
-        row.append(0)
         row.append("")
-        row.append(0)
         row.append("")
-        row.append(0) # fee
+        row.append("")
+        row.append("")
+        row.append("") # fee
         row.append("PLS4") # Fee currency
         row.append("PLS Transaction")  # Exchange
         row.append("")
@@ -165,6 +165,7 @@ with open(CSVAccount + '_' + str(startBlock) +'_'+ str(endBlock) + 'test.csv', '
             row[1] = "Income" # Type
             row[2] = division(trans[3], trans[8]) # value
             row[3] = trans[7]
+            row[7] = ""
         else:
             row[1] = "Withdraw" # Type
             row[4] = division(trans[3], trans[8]) # value
@@ -193,15 +194,15 @@ with open(CSVAccount + '_' + str(startBlock) +'_'+ str(endBlock) + 'test.csv', '
         row = []
         row.append(trans[4]) # hash
         row.append("")
-        row.append(0)
         row.append("")
-        row.append(0)
+        row.append("")
+        row.append("")
         row.append("")
 
         if trans[5] is not None and trans[5] != "0":
             row.append(division(trans[5], "18")) # fee
         else:
-            row.append(0) # fee
+            row.append("") # fee
 
         row.append("PLS4") # Fee currency
         row.append("PLS Transaction")  # Exchange
@@ -265,11 +266,11 @@ with open(CSVAccount + '_' + str(startBlock) +'_'+ str(endBlock) + 'test.csv', '
         row = []
         row.append(trans[7]) # hash
         row.append("")
-        row.append(0)
         row.append("")
-        row.append(0)
         row.append("")
-        row.append(0) # fee
+        row.append("")
+        row.append("")
+        row.append("") # fee
         row.append("PLS4") # Fee currency
         row.append("PLS Transaction")  # Exchange
         row.append("")
